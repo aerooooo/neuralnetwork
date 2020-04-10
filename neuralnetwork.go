@@ -7,76 +7,108 @@ import (
 )
 
 // Коллекция параметров нейроных слоёв
-type neuralLayer struct {
-	Neuron	[]float64
-	Error	[]float64
-	Weight	[][]float64
+type NeuralLayer struct {
+	Node   []float32
+	Error  []float32
+	Weight [][]float32
 }
 
 func main() {
-	numHiddenLayer	:= 2									// Количество скрытых нейронных слоёв
-	numTotalLayer	:= numHiddenLayer + 2					// Количество всех слоёв скрытых, входного и выходного
-	numNeuron		:= []int{2,5,4,2}						// Количество нейронов для каждого слоя
-	layer			:= make([]neuralLayer, numTotalLayer)	// Создаём срез нейронных слоёв
+	//bias			:= 1												// Смещение
+	numLayer := 4                                              // Количество всех слоёв: входного, выходного и скрытых
+	indLayer := numLayer - 1                                   // Индекс последнего слоя нейросети
+	dataSet := []float32{6.3, 1.2}                             // Обучающий набор с которым будет сравниваться выходной слой
+	layer := make([]NeuralLayer, numLayer)                     // Создаём срез нейронных слоёв
+	layer[0].Node = []float32{1.2, 6.3}                        // Входные параметры
+	numNeuron := []int{len(layer[0].Node), 5, 4, len(dataSet)} // Количество нейронов для каждого слоя
 
 	// Создаем срезы для структуры нейронных слоёв
-	for i := 0; i < numTotalLayer; i++ {
-		layer[i].Neuron = make([]float64, numNeuron[i])
-		layer[i].Error  = make([]float64, numNeuron[i])
-		layer[i].Weight = make([][]float64, numNeuron[i])
-		for j := 0; j < numNeuron[i] && i < numTotalLayer - 1; j++ {
-			layer[i].Weight[j] = make([]float64, numNeuron[i + 1])
+	for i := 0; i < numLayer; i++ {
+		if i > 0 {
+			layer[i].Node = make([]float32, numNeuron[i])
+			layer[i].Error = make([]float32, numNeuron[i])
+		}
+		layer[i].Weight = make([][]float32, numNeuron[i])
+		for j := 0; j < numNeuron[i] && i < indLayer; j++ {
+			layer[i].Weight[j] = make([]float32, numNeuron[i+1])
 		}
 	}
-
-	// Входные параметры
-	layer[0].Neuron = []float64{1.2,6.3}
 
 	// Заполняем все веса случайными числами от 0.0 до 1.0
-	fillWeight(layer[:])
+	fillWeight(layer)
 
 	// Считаем значения нейрона в слое
-	for i := 1; i < numTotalLayer; i++ {
+	for i := 1; i < numLayer; i++ {
 		for j := 0; j < numNeuron[i]; j++ {
-			layer[i].Neuron[j] = layer[i-1].calcNeuron()
+			layer[i].Node[j] = layer[i-1].calcNeuron()
 		}
 	}
+
+	// Вычисляем ошибки между обучающим набором и полученными выходными нейронами
+	for i := 0; i < numNeuron[indLayer]; i++ {
+		layer[indLayer].Error[i] = dataSet[i] - layer[indLayer].Node[i]
+	}
+
+	// Вычисляем ошибки нейронов в скрытых слоях
+	for i := indLayer - 1; i > 0; i-- {
+		for j := 0; j < numNeuron[i]; j++ {
+			layer[i].Error[j] = layer[i].calcError(layer[i+1].Error)
+		}
+	}
+
 	fmt.Println(layer)
 }
 
 // Функция заполняет все веса случайными числами от 0.0 до 1.0
-func fillWeight(layer []neuralLayer) {
-	for i := 0; i < len(layer) - 1; i++ {
-		n := len(layer[i + 1].Neuron)
-		for j := range layer[i].Neuron {
+func fillWeight(layer []NeuralLayer) {
+	for i := 0; i < len(layer)-1; i++ {
+		n := len(layer[i+1].Node)
+		for j := range layer[i].Node {
 			for k := 0; k < n; k++ {
-				layer[i].Weight[j][k] = rand.Float64()
+				layer[i].Weight[j][k] = rand.Float32()
 			}
 		}
 	}
 }
 
-// Функция считает значения нейрона в слое
-func (layer neuralLayer) calcNeuron() float64 {
-	sum := 0.0
-	for i := range layer.Neuron {
+// Функция вычисления значения нейрона в слое
+func (layer NeuralLayer) calcNeuron() float32 {
+	var sum float32 = 0
+	for i := range layer.Node {
 		for j := range layer.Weight[i] {
-			sum += layer.Neuron[i] * layer.Weight[i][j]
+			sum += layer.Node[i] * layer.Weight[i][j]
 		}
 	}
-	return getNeuralActivation(sum,0)
+	return getNeuralActivation(sum, 0)
+}
+
+// Функция вычисления ошибки нейронов в скрытых слоях
+func (layer NeuralLayer) calcError(error []float32) float32 {
+	var sum float32 = 0
+	//fmt.Println(len(layer.Weight),"   ",len(error))
+	for i := range layer.Weight {
+		for j := range layer.Weight[i] {
+			sum += error[j] * layer.Weight[i][j]
+		}
+	}
+	return sum
 }
 
 // Функция активации нейрона
-func getNeuralActivation(sum float64, mode uint8) float64 {
+func getNeuralActivation(sum float32, mode uint8) float32 {
 	switch mode {
-	default: fallthrough
-	case 0: return 1 / (1 + math.Pow(math.E, -sum)) // Sigmoid
+	default:
+		fallthrough
+	case 0:
+		return (float32)(1 / (1 + math.Pow(math.E, (float64)(-sum)))) // Sigmoid
 	case 1: // Leaky ReLu
 		switch {
-		case sum < 0: return 0.01 * sum
-		case sum > 1: return 1 + 0.01 * (sum - 1)
-		default: return sum
+		case sum < 0:
+			return 0.01 * sum
+		case sum > 1:
+			return 1 + 0.01*(sum-1)
+		default:
+			return sum
 		}
 	}
 }
