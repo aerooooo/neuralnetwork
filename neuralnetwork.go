@@ -45,9 +45,9 @@ func main() {
 	fmt.Println("Neurons:")
 	for i = 0; i < numLayer; i++ {
 		if i > 0 {
-			layer[i].Node = layer[i].calcNeuron(&layer[i - 1].Node)
+			layer[i].calcNeuron(&layer[i - 1].Node)
 		} else {
-			layer[0].Node = layer[0].calcNeuron(&inputSet)
+			layer[0].calcNeuron(&inputSet)
 		}
 		fmt.Println(i," ",layer[i].Node)
 	}
@@ -64,6 +64,8 @@ func main() {
 		layer[i - 1].Error = layer[i].calcError()
 		fmt.Println(i," ",layer[i - 1].Error)
 	}
+
+	// Обновление весов
 
 	fmt.Println(layer)
 }
@@ -82,7 +84,7 @@ func fillWeight(layer *[]NeuralLayer) {
 }
 
 // Функция вычисления значения нейронов в слое
-func (layer *NeuralLayer) calcNeuron(node *[]float32) []float32 {
+func (layer *NeuralLayer) calcNeuron(node *[]float32) {
 	l := *layer
 	n := *node
 	for i := range l.Node {
@@ -92,14 +94,14 @@ func (layer *NeuralLayer) calcNeuron(node *[]float32) []float32 {
 		}
 		l.Node[i] = getNeuralActivation(sum, 0)
 	}
-	return l.Node
 }
 
 // Функция вычисления ошибки нейронов в скрытых слоях
 func (layer *NeuralLayer) calcError() []float32 {
 	l := *layer
-	e := make([]float32, len(l.Weight[0]))
-	for i := range l.Weight[0] {
+	n := len(l.Weight[0])
+	e := make([]float32, n)
+	for i := 0; i < n; i++ {
 		var sum float32 = 0
 		for j := range l.Error {
 			sum += l.Error[j] * l.Weight[j][i]
