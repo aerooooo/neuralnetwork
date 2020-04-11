@@ -23,8 +23,9 @@ func main() {
 	indLayer	:= numLayer - 1						// Индекс последнего слоя нейросети
 	layer 		:= make([]NeuralLayer, numLayer)	// Создаём срез нейронных слоёв
 
-	// Создаем срезы для структуры нейронных слоёв
+	// Первая проходка по нейронным слоям
 	for i = 0; i < numLayer; i++ {
+		// Создаем срезы для структуры нейронных слоёв
 		layer[i].Node   = make([]float32, numNeuron[i])
 		layer[i].Error  = make([]float32, numNeuron[i])
 		layer[i].Weight = make([][]float32, numNeuron[i])
@@ -35,51 +36,41 @@ func main() {
 				layer[0].Weight[j] = make([]float32, len(inputSet))
 			}
 		}
-	}
 
-	// Заполняем все веса случайными числами от 0.0 до 1.0
-	fmt.Println("Weights:")
-	fillWeight(&layer)
+		// Заполняем все веса случайными числами от 0.0 до 1.0
+		layer[i].fillWeight()
 
-	// Считаем значения нейронов в слое
-	fmt.Println("Neurons:")
-	for i = 0; i < numLayer; i++ {
+		// Считаем значения нейронов в слое
 		if i > 0 {
 			layer[i].calcNeuron(&layer[i - 1].Node)
 		} else {
 			layer[0].calcNeuron(&inputSet)
 		}
-		fmt.Println(i," ",layer[i].Node)
 	}
 
 	// Вычисляем ошибки между обучающим набором и полученными выходными нейронами
 	for i = 0; i < numNeuron[indLayer]; i++ {
 		layer[indLayer].Error[i] = dataSet[i] - layer[indLayer].Node[i]
 	}
-	fmt.Println("Errors:")
-	fmt.Println(indLayer," ",layer[indLayer].Error)
 
 	// Вычисляем ошибки нейронов в скрытых слоях
 	for i = indLayer; i > 0; i-- {
 		layer[i - 1].Error = layer[i].calcError()
-		fmt.Println(i," ",layer[i - 1].Error)
 	}
 
 	// Обновление весов
 
-	fmt.Println(layer)
+	// Вывод значений нейросети
+	printNeuralLayer(&layer)
 }
 
 // Функция заполняет все веса случайными числами от 0.0 до 1.0
-func fillWeight(layer *[]NeuralLayer) {
+func (layer *NeuralLayer)  fillWeight() {
 	l := *layer
-	for i := range l {
-		for j := range l[i].Weight {
-			for k := range l[i].Weight[j] {
-				l[i].Weight[j][k] = rand.Float32()
-			}
+	for i := range l.Weight {
+		for j := range l.Weight[i] {
+			l.Weight[i][j] = rand.Float32()
 		}
-		fmt.Println(i," ",l[i].Weight)
 	}
 }
 
@@ -122,5 +113,20 @@ func getNeuralActivation(sum float32, mode uint8) float32 {
 		case sum > 1: return 1 + 0.01*(sum - 1)
 		default:	  return sum
 		}
+	}
+}
+
+// Функция вывода результатов нейросети
+func printNeuralLayer(layer *[]NeuralLayer) {
+	l := *layer
+	t := ""
+	for i := range l {
+		if i == len(l) - 1 {
+			t = " Output layer"
+		}
+		fmt.Println(i, t)
+		fmt.Println("Weights:\t",  l[i].Weight)
+		fmt.Println("Neurons:\t",  l[i].Node)
+		fmt.Println("Errors:\t\t", l[i].Error)
 	}
 }
