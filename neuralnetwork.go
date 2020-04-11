@@ -42,18 +42,21 @@ func main() {
 		for j := 0; j < numNeuron[i]; j++ {
 			layer[i].Node[j] = layer[i-1].calcNeuron()
 		}
+		fmt.Println(i, " ", layer[i].Node)
 	}
 
 	// Вычисляем ошибки между обучающим набором и полученными выходными нейронами
 	for i := 0; i < numNeuron[indLayer]; i++ {
 		layer[indLayer].Error[i] = dataSet[i] - layer[indLayer].Node[i]
 	}
+	fmt.Println("Error:\n", indLayer, " ", layer[indLayer].Error)
 
 	// Вычисляем ошибки нейронов в скрытых слоях
 	for i := indLayer - 1; i > 0; i-- {
 		for j := 0; j < numNeuron[i]; j++ {
 			layer[i].Error[j] = layer[i].calcError(layer[i+1].Error)
 		}
+		fmt.Println(i, " ", layer[i].Error)
 	}
 
 	fmt.Println(layer)
