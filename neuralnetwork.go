@@ -19,11 +19,12 @@ func main() {
 		i, j, k int
 		totalError float32
 		ratioLearn float32 = .5						// Коэффициент обучения, от 0 до 1
-		//biasNeuron float32 = 1						// Нейрон смещения
+		biasNeuron float32 = 1						// Нейрон смещения
 	)
+	i = (int)(biasNeuron)
 	setData		:= []float32{6.3, 3.2}				// Обучающий набор с которым будет сравниваться выходной слой
-	setInput	:= []float32{1.2, 6.3, 3.2}			// Входные параметры (слой)
-	numNeuron	:= []int{5, 4, len(setData)}		// Количество нейронов для каждого слоя, исключая входной слой
+	setInput	:= []float32{1.2, 6.3, biasNeuron}	// Входные параметры (слой)
+	numNeuron	:= []int{5 + i, 4 + i, len(setData)}// Количество нейронов для каждого слоя, исключая входной слой
 	numInput	:= len(setInput)					// Количество входных нейронов
 	numLayer	:= len(numNeuron)					// Количество скрытых слоёв и выходного слоя
 	indOutput	:= numLayer - 1						// Индекс выходного (последнего) слоя нейросети
