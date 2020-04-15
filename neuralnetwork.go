@@ -29,7 +29,7 @@ func main() {
 	numLayer	:= len(numNeuron)					// Количество скрытых слоёв и выходного слоя
 	indOutput	:= numLayer - 1						// Индекс выходного (последнего) слоя нейросети
 	layer 		:= make([]NeuralLayer, numLayer)	// Создаём срез нейронных слоёв
-	epoch       := 1000								// Количество эпох (итераций) обучения
+	epoch       := 1								// Количество эпох (итераций) обучения
 
 	// Инициализация нейронных слоёв
 	for i = 0; i < numLayer; i++ {
@@ -64,7 +64,6 @@ func main() {
 			layer[indOutput].Error[i] = (setData[i] - layer[indOutput].Neuron[i]) * getDerivative(layer[indOutput].Neuron[i], 0)
 			totalError += (float32)(math.Pow((float64)(layer[indOutput].Error[i]), 2))
 		}
-		//fmt.Println(k, " ", totalError)
 
 		// Вычисляем ошибки нейронов в скрытых слоях
 		for i = indOutput; i > 0; i-- {
@@ -137,7 +136,7 @@ func getActivation(val float32, mode uint8) float32 {
 	case 1: // Leaky ReLu
 		switch {
 		case val < 0: return 0.01 * val
-		case val > 1: return 1 + 0.01*(val - 1)
+		case val > 1: return 1 + 0.01 * (val - 1)
 		default:	  return val
 		}
 	case 2: return (float32)(2 / (1 + math.Pow(math.E, (float64)(-2 * val))) - 1) // Tanh - гиперболический тангенс

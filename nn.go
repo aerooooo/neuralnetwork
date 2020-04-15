@@ -15,6 +15,7 @@ type NNMatrix struct {
 	Input	[]float32		// Входные параметры
 	Layer	*[]NNLayer		// Коллекция полей слоя
 	Weight	*[]NNWeight		// Коллекция массива весов
+	L		NNLayer
 }
 
 // Коллекция параметров нейронного слоя
@@ -22,7 +23,6 @@ type NNLayer struct {
 	Size	int				// Количество нейронов в слое
 	Neuron	[]float32		// Значения нейрона
 	Error	[]float32		// Значение ошибки
-
 }
 
 // Коллекция параметров весов
@@ -37,19 +37,19 @@ func main() {
 		totalError float32
 	)
 	matrix := NNMatrix{
-		Bias:	1,
-		Ratio:	.5,
-		Data:  []float32{6.3, 3.2},
-		Input: []float32{1.2, 6.3},
+		Bias:	1,						// вводимые данные
+		Ratio:	.5,						// вводимые данные
+		Data:  []float32{6.3, 3.2},		// вводимые данные
+		Input: []float32{1.2, 6.3},		// вводимые данные
 	}
 	layer := []NNLayer{
 		{Size: len(matrix.Input)},
-		{Size: 5},
-		{Size: 4},
+		{Size: 5},						// вводимые данные
+		{Size: 4},						// вводимые данные
 		{Size: len(matrix.Data)},
 	}
 	matrix.Size = len(layer)
-	epoch   := 1000						// Количество эпох (итераций) обучения
+	epoch   := 1						// Количество эпох (итераций) обучения
 	index	:= matrix.Size - 1			// Индекс выходного (последнего) слоя нейросети
 	weight	:= make([]NNWeight, index)
 
@@ -57,9 +57,12 @@ func main() {
 	for i = 0; i < matrix.Size; i++ {
 		// Создаем срезы для структуры нейронных слоёв и весов
 		layer[i].Neuron = make([]float32, layer[i].Size)
-		layer[i].Error  = make([]float32, layer[i].Size)
+		if i > 0 {
+			layer[i].Error = make([]float32, layer[i].Size)
+		}
 		if i < index {
-			weight[i].Size   = []int{layer[i].Size, layer[i + 1].Size}
+			layer[i].Neuron  = append(layer[i].Neuron, matrix.Bias)
+			weight[i].Size   = []int{layer[i].Size + 1, layer[i + 1].Size}
 			weight[i].Weight = make([][]float32, weight[i].Size[0])
 			for j = 0; j < weight[i].Size[0]; j++ {
 				weight[i].Weight[j] = make([]float32, weight[i].Size[1])
@@ -89,6 +92,9 @@ func main() {
 
 	// Вывод значений нейросети
 	matrix.printMatrix(totalError)
+
+	matrix.L.Size = 25
+	fmt.Println(matrix.L.Size)
 }
 
 // Функция заполняет все веса случайными числами от -0.5 до 0.5
@@ -108,6 +114,7 @@ func (matrix *NNMatrix) calcNeuron() {
 	w := *m.Weight
 	for i := 1; i < m.Size; i++ {
 		n := i - 1
+		fmt.Println(l[n].Neuron)
 		for j := 0; j < l[i].Size; j++ {
 			var sum float32 = 0
 			for k, z := range l[n].Neuron {
@@ -124,8 +131,8 @@ func (matrix *NNMatrix) calcOutputError() (total float32) {
 	m := *matrix
 	l := *m.Layer
 	j :=  m.Size - 1
-	for i, x := range l[j].Neuron {
-		l[j].Error[i] = (m.Data[i] - x) * getDerivativeActivation(x, 0)
+	for i, n := range l[j].Neuron {
+		l[j].Error[i] = (m.Data[i] - n) * getDerivativeActivation(n, 0)
 		total += (float32)(math.Pow((float64)(l[j].Error[i]), 2))
 	}
 	return total
@@ -137,13 +144,12 @@ func (matrix *NNMatrix) calcError() {
 	l := *m.Layer
 	w := *m.Weight
 	for i := m.Size - 2; i > 0; i-- {
-		n := i + 1
-		for j, y := range l[i].Neuron {
+		for j := 0; j < l[i].Size; j++ {
 			var sum float32 = 0
-			for k, z := range l[n].Error {
-				sum += z * w[i].Weight[j][k]
+			for k, e := range l[i + 1].Error {
+				sum += e * w[i].Weight[j][k]
 			}
-			l[i].Error[j] = sum * getDerivativeActivation(y, 0)
+			l[i].Error[j] = sum * getDerivativeActivation(l[i].Neuron[j], 0)
 		}
 	}
 }
@@ -154,9 +160,10 @@ func (matrix *NNMatrix) updateWeight() {
 	l := *m.Layer
 	w := *m.Weight
 	for i := 1; i < m.Size; i++ {
-		for j, y := range l[i].Error {
-			for k, z := range l[i - 1].Neuron {
-				w[i - 1].Weight[k][j] += m.Ratio * y * z * getDerivativeActivation(l[i].Neuron[j], 0)
+		n := i - 1
+		for j, e := range l[i].Error {
+			for k := 0; k < l[n].Size; k++ {
+				w[n].Weight[k][j] += m.Ratio * e * l[n].Neuron[k] * getDerivativeActivation(l[i].Neuron[j], 0)
 			}
 		}
 	}
@@ -170,7 +177,7 @@ func getNeuralActivation(val float32, mode uint8) float32 {
 	case 1: // Leaky ReLu
 		switch {
 		case val < 0: return 0.01 * val
-		case val > 1: return 1 + 0.01*(val - 1)
+		case val > 1: return 1 + 0.01 * (val - 1)
 		default:	  return val
 		}
 	case 2: return (float32)(2 / (1 + math.Pow(math.E, (float64)(-2 * val))) - 1) // Tanh - гиперболический тангенс
@@ -200,9 +207,10 @@ func (matrix *NNMatrix) printMatrix(total float32) {
 		fmt.Println(i, t, "size: ",		l[i].Size)
 		fmt.Println("Neurons:\t",	l[i].Neuron)
 		fmt.Println("Errors:\t\t",	l[i].Error)
-		if i < n {
-			fmt.Println("Weights:\t", w[i].Weight)
-		}
+	}
+	fmt.Println("Weights:")
+	for i := 0; i < n; i++ {
+		fmt.Println(w[i].Weight)
 	}
 	fmt.Println("Total Error:\t",  total)
 }
