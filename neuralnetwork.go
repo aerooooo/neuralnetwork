@@ -19,12 +19,12 @@ func main() {
 		i, j, k int
 		totalError float32
 		ratioLearn float32 = .5						// Коэффициент обучения, от 0 до 1
-		biasNeuron float32 = 1						// Нейрон смещения
+		//biasNeuron float32 = 1						// Нейрон смещения
 	)
-	i = (int)(biasNeuron)
+	//i = (int)(biasNeuron)
 	setData		:= []float32{6.3, 3.2}				// Обучающий набор с которым будет сравниваться выходной слой
-	setInput	:= []float32{1.2, 6.3, biasNeuron}	// Входные параметры (слой)
-	numNeuron	:= []int{5 + i, 4 + i, len(setData)}// Количество нейронов для каждого слоя, исключая входной слой
+	setInput	:= []float32{1.2, 6.3/*, biasNeuron*/}	// Входные параметры (слой)
+	numNeuron	:= []int{5/* + i*/, 4/* + i*/, len(setData)}// Количество нейронов для каждого слоя, исключая входной слой
 	numInput	:= len(setInput)					// Количество входных нейронов
 	numLayer	:= len(numNeuron)					// Количество скрытых слоёв и выходного слоя
 	indOutput	:= numLayer - 1						// Индекс выходного (последнего) слоя нейросети
@@ -61,20 +61,20 @@ func main() {
 		// Вычисляем ошибки между обучающим набором и полученными выходными нейронами
 		totalError = 0
 		for i = 0; i < numNeuron[indOutput]; i++ {
-			layer[indOutput].Error[i] = (setData[i] - layer[indOutput].Neuron[i]) * getDerivativeActivation(layer[indOutput].Neuron[i], 0)
+			layer[indOutput].Error[i] = (setData[i] - layer[indOutput].Neuron[i]) * getDerivative(layer[indOutput].Neuron[i], 0)
 			totalError += (float32)(math.Pow((float64)(layer[indOutput].Error[i]), 2))
 		}
 		//fmt.Println(k, " ", totalError)
 
 		// Вычисляем ошибки нейронов в скрытых слоях
 		for i = indOutput; i > 0; i-- {
-			layer[i-1].calcError(&layer[i])
+			layer[i-1].calcErr(&layer[i])
 		}
 
 		// Обновление весов
-		layer[0].updateWeight(ratioLearn, &setInput)
+		layer[0].updWeight(ratioLearn, &setInput)
 		for i = 1; i < numLayer; i++ {
-			layer[i].updateWeight(ratioLearn, &layer[i-1].Neuron)
+			layer[i].updWeight(ratioLearn, &layer[i-1].Neuron)
 		}
 	}
 
@@ -101,12 +101,12 @@ func (layer *NeuralLayer) calcNeuron(node *[]float32) {
 		for j, y:= range l.Weight[i] {
 			sum += n[j] * y
 		}
-		l.Neuron[i] = getNeuralActivation(sum, 0)
+		l.Neuron[i] = getActivation(sum, 0)
 	}
 }
 
 // Функция вычисления ошибки нейронов в скрытых слоях
-func (layer *NeuralLayer) calcError(node *NeuralLayer) {
+func (layer *NeuralLayer) calcErr(node *NeuralLayer) {
 	l := *layer
 	n := *node
 	for i, v := range l.Neuron {
@@ -114,23 +114,23 @@ func (layer *NeuralLayer) calcError(node *NeuralLayer) {
 		for j, w := range n.Error {
 			sum += w * n.Weight[j][i]
 		}
-		l.Error[i] = sum * getDerivativeActivation(v, 0)
+		l.Error[i] = sum * getDerivative(v, 0)
 	}
 }
 
 // Функция обновления весов
-func (layer *NeuralLayer) updateWeight(ratio float32, node *[]float32) {
+func (layer *NeuralLayer) updWeight(ratio float32, node *[]float32) {
 	l := *layer
 	n := *node
 	for i, e := range l.Error {
 		for j, v := range n {
-			l.Weight[i][j] += ratio * e * v * getDerivativeActivation(l.Neuron[i], 0)
+			l.Weight[i][j] += ratio * e * v * getDerivative(l.Neuron[i], 0)
 		}
 	}
 }
 
 // Функция активации нейрона
-func getNeuralActivation(val float32, mode uint8) float32 {
+func getActivation(val float32, mode uint8) float32 {
 	switch mode {
 	default: fallthrough
 	case 0: return (float32)(1 / (1 + math.Pow(math.E, (float64)(-val)))) // Sigmoid
@@ -145,7 +145,7 @@ func getNeuralActivation(val float32, mode uint8) float32 {
 }
 
 // Функция производной активации
-func getDerivativeActivation(val float32, mode uint8) float32 {
+func getDerivative(val float32, mode uint8) float32 {
 	switch mode {
 	default: fallthrough
 	case 0: return val * (1 - val)
@@ -161,7 +161,7 @@ func printLayer(err float32, layer *[]NeuralLayer) {
 		if i == len(l) - 1 {
 			t = " Output layer"
 		}
-		fmt.Println(i, t, "size: ",		l[i].Size)
+		fmt.Println(i + 1, t, "size: ",		l[i].Size)
 		fmt.Println("Weights:\t",	l[i].Weight)
 		fmt.Println("Neurons:\t",	l[i].Neuron)
 		fmt.Println("Errors:\t\t",	l[i].Error)
