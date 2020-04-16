@@ -13,9 +13,8 @@ type NNMatrix struct {
 	Ratio 	float32			// Коэффициент обучения, от 0 до 1
 	Data	[]float32		// Обучающий набор с которым будет сравниваться выходной слой
 	Input	[]float32		// Входные параметры
-	Layer	*[]NNLayer		// Коллекция полей слоя
-	Weight	*[]NNWeight		// Коллекция массива весов
-	L		NNLayer
+	Layer	[]NNLayer		// Коллекция слоя
+	Weight	[]NNWeight		// Коллекция весов
 }
 
 // Коллекция параметров нейронного слоя
@@ -42,38 +41,36 @@ func main() {
 		Data:  []float32{6.3, 3.2},		// вводимые данные
 		Input: []float32{1.2, 6.3},		// вводимые данные
 	}
-	layer := []NNLayer{
+	matrix.Layer = []NNLayer{
 		{Size: len(matrix.Input)},
 		{Size: 5},						// вводимые данные
 		{Size: 4},						// вводимые данные
 		{Size: len(matrix.Data)},
 	}
-	matrix.Size = len(layer)
-	epoch   := 1						// Количество эпох (итераций) обучения
-	index	:= matrix.Size - 1			// Индекс выходного (последнего) слоя нейросети
-	weight	:= make([]NNWeight, index)
+	matrix.Size		 = len(matrix.Layer)
+	epoch			:= 1000				// Количество эпох (итераций) обучения
+	index			:= matrix.Size - 1	// Индекс выходного (последнего) слоя нейросети
+	matrix.Weight	 = make([]NNWeight, index)
 
 	// Инициализация нейронных слоёв и весов
 	for i = 0; i < matrix.Size; i++ {
 		// Создаем срезы для структуры нейронных слоёв и весов
-		layer[i].Neuron = make([]float32, layer[i].Size)
+		matrix.Layer[i].Neuron = make([]float32, matrix.Layer[i].Size)
 		if i > 0 {
-			layer[i].Error = make([]float32, layer[i].Size)
+			matrix.Layer[i].Error = make([]float32, matrix.Layer[i].Size)
 		}
 		if i < index {
-			layer[i].Neuron  = append(layer[i].Neuron, matrix.Bias)
-			weight[i].Size   = []int{layer[i].Size + 1, layer[i + 1].Size}
-			weight[i].Weight = make([][]float32, weight[i].Size[0])
-			for j = 0; j < weight[i].Size[0]; j++ {
-				weight[i].Weight[j] = make([]float32, weight[i].Size[1])
+			matrix.Layer[i].Neuron  = append(matrix.Layer[i].Neuron, matrix.Bias)
+			matrix.Weight[i].Size   = []int{matrix.Layer[i].Size + 1, matrix.Layer[i + 1].Size}
+			matrix.Weight[i].Weight = make([][]float32, matrix.Weight[i].Size[0])
+			for j = 0; j < matrix.Weight[i].Size[0]; j++ {
+				matrix.Weight[i].Weight[j] = make([]float32, matrix.Weight[i].Size[1])
 			}
 			// Заполняем все веса случайными числами от -0.5 до 0.5
-			weight[i].fillWeight()
+			matrix.Weight[i].fillWeight()
 		}
 	}
-	copy(layer[0].Neuron, matrix.Input) // Входные параметры
-	matrix.Layer  = &layer
-	matrix.Weight = &weight
+	copy(matrix.Layer[0].Neuron, matrix.Input) // Входные параметры
 
 	// Обучение нейронной сети за какое-то количество эпох
 	for i = 0; i < epoch; i++ {
@@ -92,35 +89,27 @@ func main() {
 
 	// Вывод значений нейросети
 	matrix.printMatrix(totalError)
-
-	matrix.L.Size = 25
-	fmt.Println(matrix.L.Size)
 }
 
 // Функция заполняет все веса случайными числами от -0.5 до 0.5
 func (weight *NNWeight) fillWeight() {
-	w := *weight
-	for i := 0; i < w.Size[0]; i++ {
-		for j := 0; j < w.Size[1]; j++ {
-			w.Weight[i][j] = rand.Float32() - .5
+	for i := 0; i < weight.Size[0]; i++ {
+		for j := 0; j < weight.Size[1]; j++ {
+			weight.Weight[i][j] = rand.Float32() - .5
 		}
 	}
 }
 
 // Функция вычисления значения нейронов в слое
 func (matrix *NNMatrix) calcNeuron() {
-	m := *matrix
-	l := *m.Layer
-	w := *m.Weight
-	for i := 1; i < m.Size; i++ {
+	for i := 1; i < matrix.Size; i++ {
 		n := i - 1
-		fmt.Println(l[n].Neuron)
-		for j := 0; j < l[i].Size; j++ {
+		for j := 0; j < matrix.Layer[i].Size; j++ {
 			var sum float32 = 0
-			for k, z := range l[n].Neuron {
-				sum += z * w[n].Weight[k][j]
+			for k, z := range matrix.Layer[n].Neuron {
+				sum += z * matrix.Weight[n].Weight[k][j]
 			}
-			l[i].Neuron[j] = getNeuralActivation(sum, 0)
+			matrix.Layer[i].Neuron[j] = getNeuralActivation(sum, 0)
 		}
 	}
 }
@@ -128,42 +117,34 @@ func (matrix *NNMatrix) calcNeuron() {
 // Функция вычисления ошибки выходного нейрона
 func (matrix *NNMatrix) calcOutputError() (total float32) {
 	total = 0
-	m := *matrix
-	l := *m.Layer
-	j :=  m.Size - 1
-	for i, n := range l[j].Neuron {
-		l[j].Error[i] = (m.Data[i] - n) * getDerivativeActivation(n, 0)
-		total += (float32)(math.Pow((float64)(l[j].Error[i]), 2))
+	j :=  matrix.Size - 1
+	for i, n := range matrix.Layer[j].Neuron {
+		matrix.Layer[j].Error[i] = (matrix.Data[i] - n) * getDerivativeActivation(n, 0)
+		total += (float32)(math.Pow((float64)(matrix.Layer[j].Error[i]), 2))
 	}
 	return total
 }
 
 // Функция вычисления ошибки нейронов в скрытых слоях
 func (matrix *NNMatrix) calcError() {
-	m := *matrix
-	l := *m.Layer
-	w := *m.Weight
-	for i := m.Size - 2; i > 0; i-- {
-		for j := 0; j < l[i].Size; j++ {
+	for i := matrix.Size - 2; i > 0; i-- {
+		for j := 0; j < matrix.Layer[i].Size; j++ {
 			var sum float32 = 0
-			for k, e := range l[i + 1].Error {
-				sum += e * w[i].Weight[j][k]
+			for k, e := range matrix.Layer[i + 1].Error {
+				sum += e * matrix.Weight[i].Weight[j][k]
 			}
-			l[i].Error[j] = sum * getDerivativeActivation(l[i].Neuron[j], 0)
+			matrix.Layer[i].Error[j] = sum * getDerivativeActivation(matrix.Layer[i].Neuron[j], 0)
 		}
 	}
 }
 
 // Функция обновления весов
 func (matrix *NNMatrix) updateWeight() {
-	m := *matrix
-	l := *m.Layer
-	w := *m.Weight
-	for i := 1; i < m.Size; i++ {
+	for i := 1; i < matrix.Size; i++ {
 		n := i - 1
-		for j, e := range l[i].Error {
-			for k := 0; k < l[n].Size; k++ {
-				w[n].Weight[k][j] += m.Ratio * e * l[n].Neuron[k] * getDerivativeActivation(l[i].Neuron[j], 0)
+		for j, e := range matrix.Layer[i].Error {
+			for k := 0; k < matrix.Layer[n].Size; k++ {
+				matrix.Weight[n].Weight[k][j] += matrix.Ratio * e * matrix.Layer[n].Neuron[k] * getDerivativeActivation(matrix.Layer[i].Neuron[j], 0)
 			}
 		}
 	}
@@ -195,22 +176,19 @@ func getDerivativeActivation(val float32, mode uint8) float32 {
 
 // Функция вывода результатов нейросети
 func (matrix *NNMatrix) printMatrix(total float32) {
-	m := *matrix
-	l := *m.Layer
-	w := *m.Weight
 	t := "Layer"
-	n := m.Size - 1
-	for i := 0; i < m.Size; i++ {
-		if i == len(l) - 1 {
+	n := matrix.Size - 1
+	for i := 0; i < matrix.Size; i++ {
+		if i == len(matrix.Layer) - 1 {
 			t = " Output layer"
 		}
-		fmt.Println(i, t, "size: ",		l[i].Size)
-		fmt.Println("Neurons:\t",	l[i].Neuron)
-		fmt.Println("Errors:\t\t",	l[i].Error)
+		fmt.Println(i, t, "size: ", matrix.Layer[i].Size)
+		fmt.Println("Neurons:\t", matrix.Layer[i].Neuron)
+		fmt.Println("Errors:\t\t", matrix.Layer[i].Error)
 	}
 	fmt.Println("Weights:")
 	for i := 0; i < n; i++ {
-		fmt.Println(w[i].Weight)
+		fmt.Println(matrix.Weight[i].Weight)
 	}
-	fmt.Println("Total Error:\t",  total)
+	fmt.Println("Total Error:\t", total)
 }
