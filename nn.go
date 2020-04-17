@@ -44,7 +44,7 @@ func main() {
 	matrix.initMatrix(bias, ratio, input, data, hidden)
 
 	// Обучение нейронной сети за какое-то количество эпох
-	for i := 0; i < 1; i++ {
+	for i := 0; i < 1000; i++ {
 		matrix.calcNeuron()						// Вычисляем значения нейронов в слое
 		collision = matrix.calcOutputError()	// Вычисляем ошибки между обучающим набором и полученными выходными нейронами
 		matrix.calcError()						// Вычисляем ошибки нейронов в скрытых слоях
@@ -125,7 +125,7 @@ func (matrix *NNMatrix) calcNeuron() {
 			for k, v := range matrix.Layer[n].Neuron {
 				sum += v * matrix.Weight[n].Weight[k][j]
 			}
-			matrix.Layer[i].Neuron[j] = getNeuralActivation(sum, 0)
+			matrix.Layer[i].Neuron[j] = getActivation(sum, 0)
 		}
 	}
 }
@@ -135,7 +135,7 @@ func (matrix *NNMatrix) calcOutputError() (collision float32) {
 	collision = 0
 	j := matrix.Size - 1
 	for i, v := range matrix.Layer[j].Neuron {
-		matrix.Layer[j].Error[i] = (matrix.Data[i] - v) * getDerivativeActivation(v, 0)
+		matrix.Layer[j].Error[i] = (matrix.Data[i] - v) * getDerivative(v, 0)
 		collision += (float32)(math.Pow((float64)(matrix.Layer[j].Error[i]), 2))
 	}
 	return collision
@@ -149,7 +149,7 @@ func (matrix *NNMatrix) calcError() {
 			for k, v := range matrix.Layer[i + 1].Error {
 				sum += v * matrix.Weight[i].Weight[j][k]
 			}
-			matrix.Layer[i].Error[j] = sum * getDerivativeActivation(matrix.Layer[i].Neuron[j], 0)
+			matrix.Layer[i].Error[j] = sum * getDerivative(matrix.Layer[i].Neuron[j], 0)
 		}
 	}
 }
@@ -158,23 +158,19 @@ func (matrix *NNMatrix) calcError() {
 func (matrix *NNMatrix) updateWeight() {
 	for i := 1; i < matrix.Size; i++ {
 		n := i - 1
-		//fmt.Println(len(matrix.Layer[i].Error)) 	//   5 4 2
-		//fmt.Println(matrix.Layer[n].Size) 		// 2 5 4
-		//fmt.Println(len(matrix.Layer[n].Neuron))	// 3 6 5
 		for j, v := range matrix.Layer[i].Error {
 			for k, p := range matrix.Layer[n].Neuron {
-				//fmt.Println(k,matrix.Layer[n].Size)
 				if k == matrix.Layer[n].Size && matrix.Bias == 0 {
 					continue
 				}
-				matrix.Weight[n].Weight[k][j] += matrix.Ratio * v * p * getDerivativeActivation(matrix.Layer[i].Neuron[j], 0)
+				matrix.Weight[n].Weight[k][j] += matrix.Ratio * v * p * getDerivative(matrix.Layer[i].Neuron[j], 0)
 			}
 		}
 	}
 }
 
 // Функция активации нейрона
-func getNeuralActivation(val float32, mode uint8) float32 {
+func getActivation(val float32, mode uint8) float32 {
 	switch mode {
 	default: fallthrough
 	case 0: return (float32)(1 / (1 + math.Pow(math.E, (float64)(-val)))) // Sigmoid
@@ -189,7 +185,7 @@ func getNeuralActivation(val float32, mode uint8) float32 {
 }
 
 // Функция производной активации
-func getDerivativeActivation(val float32, mode uint8) float32 {
+func getDerivative(val float32, mode uint8) float32 {
 	switch mode {
 	default: fallthrough
 	case 0: return val * (1 - val)
