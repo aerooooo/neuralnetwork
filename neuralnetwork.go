@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"math"
-	"math/rand"
 )
 
 // Коллекция параметров нейроных слоёв
@@ -86,7 +85,7 @@ func (layer *NeuralLayer) fillWeight() {
 	l := *layer
 	for i := 0; i < l.Size; i++ {
 		for j := range l.Weight[i] {
-			l.Weight[i][j] = rand.Float32() - .5
+			l.Weight[i][j] = /*rand.Float32() -*/ .5
 		}
 	}
 }
@@ -160,10 +159,10 @@ func printLayer(err float32, layer *[]NeuralLayer) {
 		if i == len(l) - 1 {
 			t = " Output layer"
 		}
-		fmt.Println(i + 1, t, "size: ",		l[i].Size)
-		fmt.Println("Weights:\t",	l[i].Weight)
+		fmt.Println(i + 1, t, "size: ",	l[i].Size)
 		fmt.Println("Neurons:\t",	l[i].Neuron)
 		fmt.Println("Errors:\t\t",	l[i].Error)
+		fmt.Println("Weights:\t",	l[i].Weight)
 	}
 	fmt.Println("Total Error:\t",  err)
 }

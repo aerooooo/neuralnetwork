@@ -3,16 +3,15 @@ package main
 import (
 	"fmt"
 	"math"
-	"math/rand"
 )
 
 // Коллекция параметров матрицы
 type NNMatrix struct {
 	Size	int				// Количество слоёв в нейросети (Input + Hidden + Output)
+	Index	int				// Индекс выходного (последнего) слоя нейросети
 	Bias	float32			// Нейрон смещения
 	Ratio 	float32			// Коэффициент обучения, от 0 до 1
 	Data	[]float32		// Обучающий набор с которым будет сравниваться выходной слой
-	Input	[]float32		// Входные параметры
 	Layer	[]NNLayer		// Коллекция слоя
 	Weight	[]NNWeight		// Коллекция весов
 }
@@ -32,75 +31,87 @@ type NNWeight struct {
 
 func main() {
 	var (
-		epoch 		= 1000				// Количество эпох (итераций) обучения
-		totalError	float32
+		collision	float32
+		bias		float32	= 0
+		ratio		float32	= .5
+		input	= []float32{1.2, 6.3}	// Входные параметры
+		data	= []float32{6.3, 3.2}	// Обучающий набор с которым будет сравниваться выходной слой
+		hidden	= []int{5, 4}			// Массив количеств нейронов в каждом скрытом слое
 	)
-	matrix := NNMatrix{
-		Bias:	1,						// Вводимые данные
-		Ratio:	.5,						// Вводимые данные
-		Data:  []float32{6.3, 3.2},		// Вводимые данные
-		Input: []float32{1.2, 6.3},		// Вводимые данные
-	}
-	matrix.Layer = []NNLayer{
-		{Size: 0},						// Пока 0,
-		{Size: 5},						// Вводимые данные
-		{Size: 4},						// Вводимые данные
-	}
 
 	// Инициализация нейронных слоёв и весов (матрицы)
-	matrix.initMatrix()
+	matrix := NNMatrix{}
+	matrix.initMatrix(bias, ratio, input, data, hidden)
 
 	// Обучение нейронной сети за какое-то количество эпох
-	for i := 0; i < epoch; i++ {
-		// Вычисляем значения нейронов в слое
-		matrix.calcNeuron()
-
-		// Вычисляем ошибки между обучающим набором и полученными выходными нейронами
-		totalError = matrix.calcOutputError()
-
-		// Вычисляем ошибки нейронов в скрытых слоях
-		matrix.calcError()
-
-		// Обновление весов
-		matrix.updateWeight()
+	for i := 0; i < 1; i++ {
+		matrix.calcNeuron()						// Вычисляем значения нейронов в слое
+		collision = matrix.calcOutputError()	// Вычисляем ошибки между обучающим набором и полученными выходными нейронами
+		matrix.calcError()						// Вычисляем ошибки нейронов в скрытых слоях
+		matrix.updateWeight()					// Обновление весов
 	}
 
 	// Вывод значений нейросети
-	matrix.printMatrix(totalError)
+	matrix.printMatrix(collision)
+}
+
+//
+func getNN() {
+
 }
 
 // Функция инициализации матрицы
-func (matrix *NNMatrix) initMatrix() {
-	matrix.Size				 = len(matrix.Layer)
-	index					:= matrix.Size - 1				// Индекс выходного (последнего) слоя нейросети
-	matrix.Weight			 = make([]NNWeight, index)
-	matrix.Layer[0].Size 	 = len(matrix.Input)
-	matrix.Layer[index].Size = len(matrix.Data)
-	for i := 0; i < matrix.Size; i++ {
+func (matrix *NNMatrix) initMatrix(bias float32, ratio float32, input []float32, data []float32, hidden []int) {
+	var i, j int
+	layer := []int{len(input)}
+	for _, v := range hidden {
+		layer = append(layer, v)
+	}
+	layer = append(layer, len(data))
+	matrix.Size		= len(layer)
+	matrix.Index	= matrix.Size - 1
+	matrix.Layer	= make([]NNLayer,  matrix.Size)
+	matrix.Weight	= make([]NNWeight, matrix.Index)
+	matrix.Data		= make([]float32,  layer[matrix.Index])
+	matrix.Ratio	= ratio
+	for i, j = range layer {
+		matrix.Layer[i].Size = j
+	}
+	switch {
+	case bias < 0:	matrix.Bias = 0
+	case bias > 1:	matrix.Bias = 1
+	default: 		matrix.Bias = bias
+	}
+	for i = 0; i < matrix.Size; i++ {
 		// Создаем срезы для структуры нейронных слоёв и весов
 		matrix.Layer[i].Neuron = make([]float32, matrix.Layer[i].Size)
 		if i > 0 {
 			matrix.Layer[i].Error = make([]float32, matrix.Layer[i].Size)
 		}
-		if i < index {
+		if i < matrix.Index {
 			matrix.Layer[i].Neuron  = append(matrix.Layer[i].Neuron, matrix.Bias)
 			matrix.Weight[i].Size   = []int{matrix.Layer[i].Size + 1, matrix.Layer[i + 1].Size}
 			matrix.Weight[i].Weight = make([][]float32, matrix.Weight[i].Size[0])
-			for j := 0; j < matrix.Weight[i].Size[0]; j++ {
+			for j = 0; j < matrix.Weight[i].Size[0]; j++ {
 				matrix.Weight[i].Weight[j] = make([]float32, matrix.Weight[i].Size[1])
 			}
 			// Заполняем все веса случайными числами от -0.5 до 0.5
-			matrix.Weight[i].fillWeight()
+			matrix.Weight[i].fillWeight(matrix.Bias)
 		}
 	}
-	copy(matrix.Layer[0].Neuron, matrix.Input) // Входные параметры копируем в слои
+	copy(matrix.Layer[0].Neuron, input)
+	copy(matrix.Data, data)
 }
 
 // Функция заполняет все веса случайными числами от -0.5 до 0.5
-func (weight *NNWeight) fillWeight() {
+func (weight *NNWeight) fillWeight(bias float32) {
+	n := weight.Size[0] - 1
 	for i := 0; i < weight.Size[0]; i++ {
 		for j := 0; j < weight.Size[1]; j++ {
-			weight.Weight[i][j] = rand.Float32() - .5
+			weight.Weight[i][j] = /*rand.Float32() -*/ .5
+			if i == n {
+				weight.Weight[i][j] *= bias
+			}
 		}
 	}
 }
@@ -120,14 +131,13 @@ func (matrix *NNMatrix) calcNeuron() {
 }
 
 // Функция вычисления ошибки выходного нейрона
-func (matrix *NNMatrix) calcOutputError() (total float32) {
-	total = 0
-	j :=  matrix.Size - 1
-	for i, v := range matrix.Layer[j].Neuron {
-		matrix.Layer[j].Error[i] = (matrix.Data[i] - v) * getDerivativeActivation(v, 0)
-		total += (float32)(math.Pow((float64)(matrix.Layer[j].Error[i]), 2))
+func (matrix *NNMatrix) calcOutputError() (collision float32) {
+	collision = 0
+	for i, v := range matrix.Layer[matrix.Index].Neuron {
+		matrix.Layer[matrix.Index].Error[i] = (matrix.Data[i] - v) * getDerivativeActivation(v, 0)
+		collision += (float32)(math.Pow((float64)(matrix.Layer[matrix.Index].Error[i]), 2))
 	}
-	return total
+	return collision
 }
 
 // Функция вычисления ошибки нейронов в скрытых слоях
@@ -180,7 +190,7 @@ func getDerivativeActivation(val float32, mode uint8) float32 {
 }
 
 // Функция вывода результатов нейросети
-func (matrix *NNMatrix) printMatrix(total float32) {
+func (matrix *NNMatrix) printMatrix(collision float32) {
 	t := "Layer"
 	n := matrix.Size - 1
 	for i := 0; i < matrix.Size; i++ {
@@ -195,5 +205,5 @@ func (matrix *NNMatrix) printMatrix(total float32) {
 	for i := 0; i < n; i++ {
 		fmt.Println(matrix.Weight[i].Weight)
 	}
-	fmt.Println("Total Error:\t", total)
+	fmt.Println("Total Error:\t", collision)
 }
