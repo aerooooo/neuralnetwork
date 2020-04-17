@@ -3,12 +3,12 @@ package main
 import (
 	"fmt"
 	"math"
+	"math/rand"
 )
 
 // Коллекция параметров матрицы
 type NNMatrix struct {
 	Size	int				// Количество слоёв в нейросети (Input + Hidden + Output)
-	Index	int				// Индекс выходного (последнего) слоя нейросети
 	Bias	float32			// Нейрон смещения
 	Ratio 	float32			// Коэффициент обучения, от 0 до 1
 	Data	[]float32		// Обучающий набор с которым будет сравниваться выходной слой
@@ -32,7 +32,7 @@ type NNWeight struct {
 func main() {
 	var (
 		collision	float32
-		bias		float32	= 0
+		bias		float32	= 1
 		ratio		float32	= .5
 		input	= []float32{1.2, 6.3}	// Входные параметры
 		data	= []float32{6.3, 3.2}	// Обучающий набор с которым будет сравниваться выходной слой
@@ -62,17 +62,17 @@ func getNN() {
 
 // Функция инициализации матрицы
 func (matrix *NNMatrix) initMatrix(bias float32, ratio float32, input []float32, data []float32, hidden []int) {
-	var i, j int
+	var i, j, index int
 	layer := []int{len(input)}
 	for _, v := range hidden {
 		layer = append(layer, v)
 	}
 	layer = append(layer, len(data))
 	matrix.Size		= len(layer)
-	matrix.Index	= matrix.Size - 1
+	index			= matrix.Size - 1
 	matrix.Layer	= make([]NNLayer,  matrix.Size)
-	matrix.Weight	= make([]NNWeight, matrix.Index)
-	matrix.Data		= make([]float32,  layer[matrix.Index])
+	matrix.Weight	= make([]NNWeight, index)
+	matrix.Data		= make([]float32,  index)
 	matrix.Ratio	= ratio
 	for i, j = range layer {
 		matrix.Layer[i].Size = j
@@ -88,7 +88,7 @@ func (matrix *NNMatrix) initMatrix(bias float32, ratio float32, input []float32,
 		if i > 0 {
 			matrix.Layer[i].Error = make([]float32, matrix.Layer[i].Size)
 		}
-		if i < matrix.Index {
+		if i < index {
 			matrix.Layer[i].Neuron  = append(matrix.Layer[i].Neuron, matrix.Bias)
 			matrix.Weight[i].Size   = []int{matrix.Layer[i].Size + 1, matrix.Layer[i + 1].Size}
 			matrix.Weight[i].Weight = make([][]float32, matrix.Weight[i].Size[0])
@@ -108,8 +108,8 @@ func (weight *NNWeight) fillWeight(bias float32) {
 	n := weight.Size[0] - 1
 	for i := 0; i < weight.Size[0]; i++ {
 		for j := 0; j < weight.Size[1]; j++ {
-			weight.Weight[i][j] = /*rand.Float32() -*/ .5
-			if i == n {
+			weight.Weight[i][j] = rand.Float32() - .5
+			if i >= n {
 				weight.Weight[i][j] *= bias
 			}
 		}
@@ -133,9 +133,10 @@ func (matrix *NNMatrix) calcNeuron() {
 // Функция вычисления ошибки выходного нейрона
 func (matrix *NNMatrix) calcOutputError() (collision float32) {
 	collision = 0
-	for i, v := range matrix.Layer[matrix.Index].Neuron {
-		matrix.Layer[matrix.Index].Error[i] = (matrix.Data[i] - v) * getDerivativeActivation(v, 0)
-		collision += (float32)(math.Pow((float64)(matrix.Layer[matrix.Index].Error[i]), 2))
+	j := matrix.Size - 1
+	for i, v := range matrix.Layer[j].Neuron {
+		matrix.Layer[j].Error[i] = (matrix.Data[i] - v) * getDerivativeActivation(v, 0)
+		collision += (float32)(math.Pow((float64)(matrix.Layer[j].Error[i]), 2))
 	}
 	return collision
 }
@@ -157,6 +158,7 @@ func (matrix *NNMatrix) calcError() {
 func (matrix *NNMatrix) updateWeight() {
 	for i := 1; i < matrix.Size; i++ {
 		n := i - 1
+		fmt.Println(matrix.Layer[n].Size)
 		for j, v := range matrix.Layer[i].Error {
 			for k := 0; k < matrix.Layer[n].Size; k++ {
 				matrix.Weight[n].Weight[k][j] += matrix.Ratio * v * matrix.Layer[n].Neuron[k] * getDerivativeActivation(matrix.Layer[i].Neuron[j], 0)
