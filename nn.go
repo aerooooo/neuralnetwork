@@ -109,7 +109,7 @@ func (weight *NNWeight) fillWeight(bias float32) {
 	for i := 0; i < weight.Size[0]; i++ {
 		for j := 0; j < weight.Size[1]; j++ {
 			weight.Weight[i][j] = rand.Float32() - .5
-			if i >= n {
+			if i == n {
 				weight.Weight[i][j] *= bias
 			}
 		}
@@ -158,10 +158,16 @@ func (matrix *NNMatrix) calcError() {
 func (matrix *NNMatrix) updateWeight() {
 	for i := 1; i < matrix.Size; i++ {
 		n := i - 1
-		fmt.Println(matrix.Layer[n].Size)
+		//fmt.Println(len(matrix.Layer[i].Error)) 	//   5 4 2
+		//fmt.Println(matrix.Layer[n].Size) 		// 2 5 4
+		//fmt.Println(len(matrix.Layer[n].Neuron))	// 3 6 5
 		for j, v := range matrix.Layer[i].Error {
-			for k := 0; k < matrix.Layer[n].Size; k++ {
-				matrix.Weight[n].Weight[k][j] += matrix.Ratio * v * matrix.Layer[n].Neuron[k] * getDerivativeActivation(matrix.Layer[i].Neuron[j], 0)
+			for k, p := range matrix.Layer[n].Neuron {
+				//fmt.Println(k,matrix.Layer[n].Size)
+				if k == matrix.Layer[n].Size && matrix.Bias == 0 {
+					continue
+				}
+				matrix.Weight[n].Weight[k][j] += matrix.Ratio * v * p * getDerivativeActivation(matrix.Layer[i].Neuron[j], 0)
 			}
 		}
 	}
