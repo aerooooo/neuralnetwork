@@ -1,7 +1,6 @@
 package main
 
 import (
-	"./lib"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -43,19 +42,20 @@ func main() {
 		hidden	= []int{5, 4}			// Массив количеств нейронов в каждом скрытом слое
 	)
 
-	// Инициализация нейронных слоёв и весов (матрицы)
+	// Инициализация нейросети
 	matrix := NNMatrix{}
 	matrix.InitNN(bias, ratio, input, data, hidden)
 
+	// Заполняем все веса случайными числами от -0.5 до 0.5
+	matrix.FillWeight()
+
 	// Обучение нейронной сети за какое-то количество эпох
-	for i := 0; i < 1000; i++ {
+	for i := 0; i < 100; i++ {
 		matrix.CalcNeuron()                  // Вычисляем значения нейронов в слое
 		collision = matrix.CalcOutputError() // Вычисляем ошибки между обучающим набором и полученными выходными нейронами
 		matrix.CalcError()                   // Вычисляем ошибки нейронов в скрытых слоях
 		matrix.UpdWeight()                   // Обновление весов
 	}
-
-	fmt.Println(lib.Get("cs"))
 
 	err := matrix.WriteWeight()
 	if err != nil {
@@ -106,8 +106,6 @@ func (matrix *NNMatrix) InitNN(bias float32, ratio float32, input []float32, dat
 			for j = 0; j < matrix.Weight[i].Size[0]; j++ {
 				matrix.Weight[i].Weight[j] = make([]float32, matrix.Weight[i].Size[1])
 			}
-			// Заполняем все веса случайными числами от -0.5 до 0.5
-			matrix.Weight[i].FillRandWeight(matrix.Bias)
 		}
 	}
 	copy(matrix.Layer[0].Neuron, input)
@@ -115,13 +113,15 @@ func (matrix *NNMatrix) InitNN(bias float32, ratio float32, input []float32, dat
 }
 
 // Функция заполняет все веса случайными числами от -0.5 до 0.5
-func (weight *NNWeight) FillRandWeight(bias float32) {
-	n := weight.Size[0] - 1
-	for i := 0; i < weight.Size[0]; i++ {
-		for j := 0; j < weight.Size[1]; j++ {
-			weight.Weight[i][j] = rand.Float32() - .5
-			if i == n {
-				weight.Weight[i][j] *= bias
+func (matrix *NNMatrix) FillWeight() {
+	for i := 0; i < matrix.Size - 1; i++ {
+		n := matrix.Weight[i].Size[0] - 1
+		for j := 0; j < matrix.Weight[i].Size[0]; j++ {
+			for k := 0; k < matrix.Weight[i].Size[1]; k++ {
+				matrix.Weight[i].Weight[j][k] = rand.Float32() - .5
+				if j == n {
+					matrix.Weight[i].Weight[j][k] *= matrix.Bias
+				}
 			}
 		}
 	}
@@ -147,7 +147,7 @@ func (matrix *NNMatrix) CalcOutputError() (collision float32) {
 	j := matrix.Size - 1
 	for i, v := range matrix.Layer[j].Neuron {
 		matrix.Layer[j].Error[i] = (matrix.Data[i] - v) * GetDerivative(v, 0)
-		collision += (float32)(math.Pow((float64)(matrix.Layer[j].Error[i]), 2))
+		collision += float32(math.Pow(float64(matrix.Layer[j].Error[i]), 2))
 	}
 	return collision
 }
@@ -184,14 +184,14 @@ func (matrix *NNMatrix) UpdWeight() {
 func GetActivation(value float32, mode uint8) float32 {
 	switch mode {
 	default: fallthrough
-	case 0: return (float32)(1 / (1 + math.Pow(math.E, (float64)(-value)))) // Sigmoid
+	case 0: return float32(1 / (1 + math.Pow(math.E, float64(-value)))) // Sigmoid
 	case 1: // Leaky ReLu
 		switch {
 		case value < 0: return 0.01 * value
 		case value > 1: return 1 + 0.01 * (value - 1)
 		default:	  return value
 		}
-	case 2: return (float32)(2 / (1 + math.Pow(math.E, (float64)(-2 * value))) - 1) // Tanh - гиперболический тангенс
+	case 2: return float32(2 / (1 + math.Pow(math.E, float64(-2 * value))) - 1) // Tanh - гиперболический тангенс
 	}
 }
 
@@ -224,11 +224,27 @@ func (matrix *NNMatrix) PrintNN(collision float32) {
 }
 
 //
-func (matrix *NNMatrix) WriteWeight() error {
-	message := []byte(strconv.FormatFloat((float64)(matrix.Weight[0].Weight[0][0]), 'f', -1, 32))
-	err := ioutil.WriteFile("weight.data", message, 0644)
+func (matrix *NNMatrix) WriteWeight() (err error) {
+	var v []byte
+	for i := 0; i < matrix.Size - 1; i++ {
+		for j := 0; j < matrix.Weight[i].Size[0]; j++ {
+			for k := 0; k < matrix.Weight[i].Size[1]; k++ {
+				v = strconv.AppendFloat(v, float64(matrix.Weight[i].Weight[j][k]), 'f', -1, 32)
+				//d := strconv.FormatFloat(float64(matrix.Weight[i].Weight[j][k]), 'f', -1, 32)
+			}
+		}
+	}
+	//n, err = io.WriteString("weight.data")
+
+	err = ioutil.WriteFile("weight.dat", v, 0644)
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	return err
+}
+
+// Конвертирует float32 в []byte
+func ConvertFloat32ToByte(value float32) []byte {
+	return []byte(strconv.FormatFloat(float64(value), 'f', -1, 32))
 }

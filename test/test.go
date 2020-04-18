@@ -2,7 +2,13 @@ package test
 
 import (
 	"fmt"
+	"strconv"
 )
+
+// Конвертирует float32 в []byte
+func ConvertFloat32ToByte(value float32) []byte {
+	return []byte(strconv.FormatFloat(float64(value), 'f', -1, 32))
+}
 
 type NNMatrix struct {
 	Size	int			// Количество слоёв в нейросети (Input + Hidden + Output)
