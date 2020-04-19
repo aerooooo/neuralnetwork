@@ -245,7 +245,7 @@ func (matrix *NNMatrix) PrintNN(collision float32) {
 	fmt.Println("Total Error:\t", collision)
 }
 
-//
+// Записываем данные вессов в файла
 func (matrix *NNMatrix) WriteWeight(filename string) error {
 	file, err := os.Create(filename)
 	writer := bufio.NewWriter(file)
@@ -265,28 +265,23 @@ func (matrix *NNMatrix) WriteWeight(filename string) error {
 					_, err = writer.WriteString("\n") // Перевод строки
 				}
 			}
-			/*if j < matrix.Weight[i].Size[0] {
-				_, err = writer.WriteString("\n") // Перевод строки
-			}*/
 		}
 		if i < matrix.Size - 2 {
-			/*_, err = writer.WriteString(strconv.Itoa(i))*/
 			_, err = writer.WriteString("\n") // Перевод строки
 		}
 	}
-	err = writer.Flush()	// Сбрасываем данные из буфера в файл
-	return err
+	return writer.Flush()	// Сбрасываем данные из буфера в файл
 }
 
-//
+// Считываем данные вессов из файла
 func (matrix *NNMatrix) ReadWeight(filename string) error {
 	file, err := os.Open(filename)
 	if err != nil {
-		fmt.Println("Unable to open file: ", err)
 		return err
 	}
 	defer file.Close()
 
+	//var i, j int
 	reader := bufio.NewReader(file)
 	for i, j := 0, 0;; {
 		line, err := reader.ReadString('\n')
@@ -294,7 +289,6 @@ func (matrix *NNMatrix) ReadWeight(filename string) error {
 			if err == io.EOF {
 				break
 			} else {
-				log.Fatal(err)
 				return err
 			}
 		} else {
@@ -303,7 +297,7 @@ func (matrix *NNMatrix) ReadWeight(filename string) error {
 				for k, v := range strings.Split(line, "\t") {
 					if f, err := strconv.ParseFloat(v, 32); err == nil {
 						//fmt.Printf("%v, %v, %v, %T, %v\n", i, j, k, f, float32(f))
-						fmt.Println(i, j, k, float32(f))
+						//fmt.Println(i, j, k, float32(f))
 						matrix.Weight[i].Weight[j][k] = float32(f)
 					} else {
 						log.Fatal(err)
@@ -316,77 +310,5 @@ func (matrix *NNMatrix) ReadWeight(filename string) error {
 			}
 		}
 	}
-
-	/*for j := 0;; {
-		line, err = reader.ReadString('\n')
-		if err != nil {
-			if err == io.EOF {
-				break
-			} else {
-				log.Fatal(err)
-				return err
-			}
-		} else {
-			if strings.Contains(line, "\n") {
-				break
-			}
-		}
-		fmt.Print(j," ",line)
-		j++
-	}*/
-	/*for i := 0;; {
-		for j := 0;; {
-			line, err = reader.ReadString('\n')
-			for k := 0;; {
-				line, err = reader.ReadString('\t')
-				if err != nil {
-					if err == io.EOF {
-						break
-					} else {
-						log.Fatal(err)
-						return err
-					}
-				} else {
-					line = strings.Trim(line, "\t")
-					fmt.Print(k, " ", line)
-					k++
-					break
-				}
-			}
-		}
-	}*/
-
-
-	/*for i := 0; i < matrix.Size - 1; i++ {
-		for j := 0; j < matrix.Weight[i].Size[0]; j++ {
-			for k := 0; k < matrix.Weight[i].Size[1]; k++ {
-				if k < matrix.Weight[i].Size[1] - 1 {
-					line, err = reader.ReadString('\t')
-
-				} else {
-					line, err = reader.ReadString('\n')
-
-				}
-				if err != nil {
-					if err == io.EOF {
-						break
-					} else {
-						fmt.Println(err)
-						return err
-					}
-				} else {
-				}
-				line = strings.Trim(line, "\t")
-				line = strings.Trim(line, "\n")
-				//v, _  := strconv.ParseFloat(line, 32)
-				if v, err := strconv.ParseFloat(line, 32); err == nil {
-					fmt.Printf("%T, %v\n", v, v)
-				} else {
-					//log.Println(err)
-					log.Fatal(err)
-				}
-			}
-		}
-	}*/
 	return err
 }
