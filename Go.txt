@@ -10,7 +10,7 @@ continue
 	close
 default
 defer
-	delete
+delete
 else
 error
 fallthrough
@@ -20,18 +20,18 @@ func
 	goto
 if
 import
-init
+init					func init() {}
 	interface
-make					make([]T, length, capacity)	new([capacity]int)[0:length]
-mane
-	map
-	new
+make					m := make([]int, 50, 100)		m := new([capacity]int)[0:length]
+mane					func main() {}
+map						var m map[string]int		m := make(map[string][]int)		m := map[string]int{}
+new
 len
 package
 range
 return
 	select
-struct
+struct					var v Struct		v := Struct{}		v := new(Struct)
 switch
 type
 var
