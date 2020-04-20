@@ -41,6 +41,9 @@ func main() {
 		log.Fatal(err)
 	}
 
+	nn.Get()
+	nn.GetOutput(bias, input, &matrix)
+
 	// Вывод значений нейросети
 	matrix.PrintNN(collision)
 }
