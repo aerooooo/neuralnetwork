@@ -12,11 +12,11 @@ import (
 	"strings"
 )
 
-// Коллекция параметров матрицы
+// Коллекция параметров матрицы нейросети
 type NNMatrix struct {
 	Size	int				// Количество слоёв в нейросети (Input + Hidden + Output)
-	Mode	uint8			// Индетефикатор функции активации: 0 - Sigmoid, 1 - Leaky ReLu, 2 - Tanh
-	Bias	float32			// Нейрон смещения
+	Mode	uint8			// Идентификатор функции активации: 0 - Sigmoid, 1 - Leaky ReLu, 2 - Tanh
+	Bias	float32			// Нейрон смещения: от 0 до 1
 	Ratio 	float32			// Коэффициент обучения, от 0 до 1
 	Data	[]float32		// Обучающий набор с которым будет сравниваться выходной слой
 	Layer	[]NNLayer		// Коллекция слоя
@@ -39,23 +39,23 @@ type NNWeight struct {
 func main() {
 	var (
 		collision	float32
-		bias		float32	= 0
+		bias		float32	= 1
 		ratio		float32	= .5
 		input	= []float32{1.2, 6.3}	// Входные параметры
 		data	= []float32{6.3, 3.2}	// Обучающий набор с которым будет сравниваться выходной слой
 		hidden	= []int{5, 4}			// Массив количеств нейронов в каждом скрытом слое
-		mode		uint8 = 0			// Индетефикатор функции активации
+		mode		uint8 = 0			// Идентификатор функции активации
 	)
 
 	// Инициализация нейросети
 	matrix := new(NNMatrix)
-	matrix.InitNN(mode, bias, ratio, input, data, hidden)
+	matrix.Init(mode, bias, ratio, input, data, hidden)
 
 	// Заполняем все веса случайными числами от -0.5 до 0.5
 	matrix.FillWeight()
 
 	// Обучение нейронной сети за какое-то количество эпох
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 1000; i++ {
 		matrix.CalcNeuron()                  // Вычисляем значения нейронов в слое
 		collision = matrix.CalcOutputError() // Вычисляем ошибки между обучающим набором и полученными выходными нейронами
 		matrix.CalcError()                   // Вычисляем ошибки нейронов в скрытых слоях
@@ -88,7 +88,7 @@ func GetOutput(bias float32, input []float32, matrix *NNMatrix) (output []float3
 }
 
 // Функция инициализации матрицы
-func (m *NNMatrix) InitNN(mode uint8, bias float32, ratio float32, input []float32, data []float32, hidden []int) {
+func (m *NNMatrix) Init(mode uint8, bias, ratio float32, input, data []float32, hidden []int) {
 	var i, j, index int
 	layer := []int{len(input)}
 	for _, v := range hidden {
@@ -243,7 +243,7 @@ func (m *NNMatrix) WriteWeight(filename string) error {
 	file, err := os.Create(filename)
 	writer := bufio.NewWriter(file)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		os.Exit(1)
 	}
 	defer file.Close()
