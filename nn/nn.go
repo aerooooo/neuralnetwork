@@ -1,4 +1,4 @@
-package main
+package nn
 
 import (
 	"bufio"
@@ -13,31 +13,34 @@ import (
 )
 
 // Коллекция параметров матрицы нейросети
-type NNMatrix struct {
-	Size	int				// Количество слоёв в нейросети (Input + Hidden + Output)
-	Mode	uint8			// Идентификатор функции активации: 0 - Sigmoid, 1 - Leaky ReLu, 2 - Tanh
-	Bias	float32			// Нейрон смещения: от 0 до 1
-	Ratio 	float32			// Коэффициент обучения, от 0 до 1
-	Data	[]float32		// Обучающий набор с которым будет сравниваться выходной слой
-	Layer	[]NNLayer		// Коллекция слоя
-	Link	[]NNWeight		// Коллекция весов
+type Matrix struct {
+	Size	int			// Количество слоёв в нейросети (Input + Hidden + Output)
+	Mode	uint8		// Идентификатор функции активации: 0 - Sigmoid, 1 - Leaky ReLu, 2 - Tanh
+	Bias	float32		// Нейрон смещения: от 0 до 1
+	Ratio 	float32		// Коэффициент обучения, от 0 до 1
+	Data	[]float32	// Обучающий набор с которым будет сравниваться выходной слой
+	Layer	[]Layer		// Коллекция слоя
+	Link	[]Weight	// Коллекция весов
 }
 
 // Коллекция параметров нейронного слоя
-type NNLayer struct {
-	Size	int				// Количество нейронов в слое
-	Neuron	[]float32		// Значения нейрона
-	Error	[]float32		// Значение ошибки
+type Layer struct {
+	Size	int			// Количество нейронов в слое
+	Neuron	[]float32	// Значения нейрона
+	Error	[]float32	// Значение ошибки
 }
 
 // Коллекция параметров весов
-type NNWeight struct {
-	Size	[]int			// Количество связей весов {X, Y}, X - входной (предыдущий) слой, Y - выходной (следующий) слой
-	Weight	[][]float32		// Значения весов
+type Weight struct {
+	Size	[]int		// Количество связей весов {X, Y}, X - входной (предыдущий) слой, Y - выходной (следующий) слой
+	Weight	[][]float32	// Значения весов
 }
 
-func main() {
-	var (
+func init() {
+
+
+
+/*	var (
 		collision	float32
 		bias		float32	= 1
 		ratio		float32	= .5
@@ -55,7 +58,7 @@ func main() {
 	matrix.FillWeight()
 
 	// Обучение нейронной сети за какое-то количество эпох
-	for i := 0; i < 1000; i++ {
+	for i := 0; i < 10; i++ {
 		matrix.CalcNeuron()                  // Вычисляем значения нейронов в слое
 		collision = matrix.CalcOutputError() // Вычисляем ошибки между обучающим набором и полученными выходными нейронами
 		matrix.CalcError()                   // Вычисляем ошибки нейронов в скрытых слоях
@@ -73,7 +76,7 @@ func main() {
 	}
 
 	// Вывод значений нейросети
-	matrix.PrintNN(collision)
+	matrix.PrintNN(collision)*/
 }
 
 //
@@ -82,13 +85,13 @@ func Get() {
 }
 
 //
-func GetOutput(bias float32, input []float32, matrix *NNMatrix) (output []float32) {
+func GetOutput(bias float32, input []float32, matrix *Matrix) (output []float32) {
 	//matrix.CalcNeuron()                  // Вычисляем значения нейронов в слое
 	return output
 }
 
 // Функция инициализации матрицы
-func (m *NNMatrix) Init(mode uint8, bias, ratio float32, input, data []float32, hidden []int) {
+func (m *Matrix) Init(mode uint8, bias, ratio float32, input, data []float32, hidden []int) {
 	var i, j, index int
 	layer := []int{len(input)}
 	for _, v := range hidden {
@@ -97,8 +100,8 @@ func (m *NNMatrix) Init(mode uint8, bias, ratio float32, input, data []float32, 
 	layer = append(layer, len(data))
 	m.Size  = len(layer)
 	index   = m.Size - 1
-	m.Layer = make([]NNLayer,  m.Size)
-	m.Link  = make([]NNWeight, index)
+	m.Layer = make([]Layer,  m.Size)
+	m.Link  = make([]Weight, index)
 	m.Data  = make([]float32,  index)
 	m.Ratio = ratio
 	m.Mode  = mode
@@ -130,7 +133,7 @@ func (m *NNMatrix) Init(mode uint8, bias, ratio float32, input, data []float32, 
 }
 
 // Функция заполняет все веса случайными числами от -0.5 до 0.5
-func (m *NNMatrix) FillWeight() {
+func (m *Matrix) FillWeight() {
 	for i := 0; i < m.Size - 1; i++ {
 		n := m.Link[i].Size[0] - 1
 		for j := 0; j < m.Link[i].Size[0]; j++ {
@@ -146,7 +149,7 @@ func (m *NNMatrix) FillWeight() {
 }
 
 // Функция вычисления значения нейронов в слое
-func (m *NNMatrix) CalcNeuron() {
+func (m *Matrix) CalcNeuron() {
 	for i := 1; i < m.Size; i++ {
 		n := i - 1
 		for j := 0; j < m.Layer[i].Size; j++ {
@@ -160,7 +163,7 @@ func (m *NNMatrix) CalcNeuron() {
 }
 
 // Функция вычисления ошибки выходного нейрона
-func (m *NNMatrix) CalcOutputError() (collision float32) {
+func (m *Matrix) CalcOutputError() (collision float32) {
 	collision = 0
 	j := m.Size - 1
 	for i, v := range m.Layer[j].Neuron {
@@ -171,7 +174,7 @@ func (m *NNMatrix) CalcOutputError() (collision float32) {
 }
 
 // Функция вычисления ошибки нейронов в скрытых слоях
-func (m *NNMatrix) CalcError() {
+func (m *Matrix) CalcError() {
 	for i := m.Size - 2; i > 0; i-- {
 		for j := 0; j < m.Layer[i].Size; j++ {
 			var sum float32 = 0
@@ -184,7 +187,7 @@ func (m *NNMatrix) CalcError() {
 }
 
 // Функция обновления весов
-func (m *NNMatrix) UpdWeight() {
+func (m *Matrix) UpdWeight() {
 	for i := 1; i < m.Size; i++ {
 		n := i - 1
 		for j, v := range m.Layer[i].Error {
@@ -220,7 +223,7 @@ func GetDerivative(value float32, mode uint8) float32 {
 }
 
 // Функция вывода результатов нейросети
-func (m *NNMatrix) PrintNN(collision float32) {
+func (m *Matrix) PrintNN(collision float32) {
 	t := "Layer"
 	n := m.Size - 1
 	for i := 0; i < m.Size; i++ {
@@ -239,7 +242,7 @@ func (m *NNMatrix) PrintNN(collision float32) {
 }
 
 // Записываем данные вессов в файла
-func (m *NNMatrix) WriteWeight(filename string) error {
+func (m *Matrix) WriteWeight(filename string) error {
 	file, err := os.Create(filename)
 	writer := bufio.NewWriter(file)
 	if err != nil {
@@ -267,7 +270,7 @@ func (m *NNMatrix) WriteWeight(filename string) error {
 }
 
 // Считываем данные вессов из файла
-func (m *NNMatrix) ReadWeight(filename string) error {
+func (m *Matrix) ReadWeight(filename string) error {
 	file, err := os.Open(filename)
 	if err != nil {
 		return err

@@ -36,7 +36,6 @@ switch
 type
 var
 
-
 Operators and punctuation:
 ----------------------------------------
 +
