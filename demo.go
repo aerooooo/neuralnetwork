@@ -6,9 +6,12 @@ import (
 	"github.com/teratron/neuralnetwork/nn"
 )
 
+func init() {
+}
+
 func main() {
 	var (
-		collision	float32
+		miss		float32
 		bias		float32	= 0
 		ratio		float32	= .5
 		input	= []float32{1.2, 6.3}	// Входные параметры
@@ -27,7 +30,7 @@ func main() {
 	// Обучение нейронной сети за какое-то количество эпох
 	for i := 0; i < 10; i++ {
 		matrix.CalcNeuron()                  // Вычисляем значения нейронов в слое
-		collision = matrix.CalcOutputError() // Вычисляем ошибки между обучающим набором и полученными выходными нейронами
+		miss = matrix.CalcOutputError() // Вычисляем ошибки между обучающим набором и полученными выходными нейронами
 		matrix.CalcError()                   // Вычисляем ошибки нейронов в скрытых слоях
 		matrix.UpdWeight()                   // Обновление весов
 	}
@@ -46,5 +49,5 @@ func main() {
 	nn.GetOutput(bias, input, &matrix)
 
 	// Вывод значений нейросети
-	matrix.PrintNN(collision)
+	matrix.PrintNN(miss)
 }

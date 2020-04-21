@@ -20,6 +20,7 @@ type Matrix struct {
 	Mode	uint8		// Идентификатор функции активации: 0 - Sigmoid, 1 - Leaky ReLu, 2 - Tanh
 	Bias	float32		// Нейрон смещения: от 0 до 1
 	Ratio 	float32		// Коэффициент обучения, от 0 до 1
+	Limit	float32		// Минимальный уровень обучения
 	Data	[]float32	// Обучающий набор с которым будет сравниваться выходной слой
 	Layer	[]Layer		// Коллекция слоя
 	Link	[]Weight	// Коллекция весов
@@ -61,7 +62,7 @@ func (m *Matrix) Init(mode uint8, bias, ratio float32, input, data []float32, hi
 	for _, v := range hidden {
 		layer = append(layer, v)
 	}
-	layer = append(layer, len(data))
+	layer   = append(layer, len(data))
 	m.Size  = len(layer)
 	m.Index = m.Size - 1
 	m.Layer = make([]Layer,   m.Size)
@@ -130,13 +131,13 @@ func (m *Matrix) CalcNeuron() {
 
 // Function for calculating the error of the output neuron
 // Функция вычисления ошибки выходного нейрона
-func (m *Matrix) CalcOutputError() (collision float32) {
-	collision = 0
+func (m *Matrix) CalcOutputError() (miss float32) {
+	miss = 0
 	for i, v := range m.Layer[m.Index].Neuron {
 		m.Layer[m.Index].Error[i] = (m.Data[i] - v) * GetDerivative(v, 0)
-		collision += float32(math.Pow(float64(m.Layer[m.Index].Error[i]), 2))
+		miss += float32(math.Pow(float64(m.Layer[m.Index].Error[i]), 2))
 	}
-	return collision
+	return miss
 }
 
 // Function for calculating the error of neurons in hidden layers
