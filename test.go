@@ -16,6 +16,7 @@ func main() {
 		hidden	= []int{5, 4}			// Массив количеств нейронов в каждом скрытом слое
 		mode		uint8 = 0			// Идентификатор функции активации
 	)
+
 	// Инициализация нейросети
 	var matrix nn.Matrix
 	matrix.Init(mode, bias, ratio, input, data, hidden)

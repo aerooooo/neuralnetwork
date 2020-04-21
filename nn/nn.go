@@ -12,9 +12,11 @@ import (
 	"strings"
 )
 
+// Collection of neural network matrix parameters
 // Коллекция параметров матрицы нейросети
 type Matrix struct {
 	Size	int			// Количество слоёв в нейросети (Input + Hidden + Output)
+	Index	int			// Индекс выходного (последнего) слоя нейросети
 	Mode	uint8		// Идентификатор функции активации: 0 - Sigmoid, 1 - Leaky ReLu, 2 - Tanh
 	Bias	float32		// Нейрон смещения: от 0 до 1
 	Ratio 	float32		// Коэффициент обучения, от 0 до 1
@@ -23,6 +25,7 @@ type Matrix struct {
 	Link	[]Weight	// Коллекция весов
 }
 
+// Collection of neural layer parameters
 // Коллекция параметров нейронного слоя
 type Layer struct {
 	Size	int			// Количество нейронов в слое
@@ -30,6 +33,7 @@ type Layer struct {
 	Error	[]float32	// Значение ошибки
 }
 
+// Collection of weight parameters
 // Коллекция параметров весов
 type Weight struct {
 	Size	[]int		// Количество связей весов {X, Y}, X - входной (предыдущий) слой, Y - выходной (следующий) слой
@@ -44,24 +48,25 @@ func Get() {
 }
 
 //
-func GetOutput(bias float32, input []float32, matrix *Matrix) (output []float32) {
-	//matrix.CalcNeuron()                  // Вычисляем значения нейронов в слое
-	return output
+func GetOutput(bias float32, input []float32, matrix *Matrix) []float32 {
+	matrix.CalcNeuron()
+	return matrix.Layer[matrix.Index].Neuron
 }
 
+// Matrix initialization function
 // Функция инициализации матрицы
 func (m *Matrix) Init(mode uint8, bias, ratio float32, input, data []float32, hidden []int) {
-	var i, j, index int
+	var i, j int
 	layer := []int{len(input)}
 	for _, v := range hidden {
 		layer = append(layer, v)
 	}
 	layer = append(layer, len(data))
 	m.Size  = len(layer)
-	index   = m.Size - 1
-	m.Layer = make([]Layer,  m.Size)
-	m.Link  = make([]Weight, index)
-	m.Data  = make([]float32,  index)
+	m.Index = m.Size - 1
+	m.Layer = make([]Layer,   m.Size)
+	m.Link  = make([]Weight,  m.Index)
+	m.Data  = make([]float32, m.Index)
 	m.Ratio = ratio
 	m.Mode  = mode
 	for i, j = range layer {
@@ -78,7 +83,7 @@ func (m *Matrix) Init(mode uint8, bias, ratio float32, input, data []float32, hi
 		if i > 0 {
 			m.Layer[i].Error = make([]float32, m.Layer[i].Size)
 		}
-		if i < index {
+		if i < m.Index {
 			m.Layer[i].Neuron = append(m.Layer[i].Neuron, m.Bias)
 			m.Link[i].Size    = []int{m.Layer[i].Size + 1, m.Layer[i + 1].Size}
 			m.Link[i].Weight  = make([][]float32, m.Link[i].Size[0])
@@ -91,9 +96,10 @@ func (m *Matrix) Init(mode uint8, bias, ratio float32, input, data []float32, hi
 	copy(m.Data, data)
 }
 
+// The function fills all weights with random numbers from -0.5 to 0.5
 // Функция заполняет все веса случайными числами от -0.5 до 0.5
 func (m *Matrix) FillWeight() {
-	for i := 0; i < m.Size - 1; i++ {
+	for i := 0; i < m.Index; i++ {
 		n := m.Link[i].Size[0] - 1
 		for j := 0; j < m.Link[i].Size[0]; j++ {
 			for k := 0; k < m.Link[i].Size[1]; k++ {
@@ -107,7 +113,8 @@ func (m *Matrix) FillWeight() {
 	}
 }
 
-// Функция вычисления значения нейронов в слое
+// Function for calculating the values of neurons in a layer
+// Функция вычисления значений нейронов в слое
 func (m *Matrix) CalcNeuron() {
 	for i := 1; i < m.Size; i++ {
 		n := i - 1
@@ -121,17 +128,18 @@ func (m *Matrix) CalcNeuron() {
 	}
 }
 
+// Function for calculating the error of the output neuron
 // Функция вычисления ошибки выходного нейрона
 func (m *Matrix) CalcOutputError() (collision float32) {
 	collision = 0
-	j := m.Size - 1
-	for i, v := range m.Layer[j].Neuron {
-		m.Layer[j].Error[i] = (m.Data[i] - v) * GetDerivative(v, 0)
-		collision += float32(math.Pow(float64(m.Layer[j].Error[i]), 2))
+	for i, v := range m.Layer[m.Index].Neuron {
+		m.Layer[m.Index].Error[i] = (m.Data[i] - v) * GetDerivative(v, 0)
+		collision += float32(math.Pow(float64(m.Layer[m.Index].Error[i]), 2))
 	}
 	return collision
 }
 
+// Function for calculating the error of neurons in hidden layers
 // Функция вычисления ошибки нейронов в скрытых слоях
 func (m *Matrix) CalcError() {
 	for i := m.Size - 2; i > 0; i-- {
@@ -145,6 +153,7 @@ func (m *Matrix) CalcError() {
 	}
 }
 
+// Weights update function
 // Функция обновления весов
 func (m *Matrix) UpdWeight() {
 	for i := 1; i < m.Size; i++ {
@@ -157,6 +166,7 @@ func (m *Matrix) UpdWeight() {
 	}
 }
 
+// Neuron activation function
 // Функция активации нейрона
 func GetActivation(value float32, mode uint8) float32 {
 	switch mode {
@@ -172,6 +182,7 @@ func GetActivation(value float32, mode uint8) float32 {
 	}
 }
 
+// Derivative Activation Function
 // Функция производной активации
 func GetDerivative(value float32, mode uint8) float32 {
 	switch mode {
@@ -210,7 +221,7 @@ func (m *Matrix) WriteWeight(filename string) error {
 	}
 	defer file.Close()
 
-	for i := 0; i < m.Size - 1; i++ {
+	for i := 0; i < m.Index; i++ {
 		for j := 0; j < m.Link[i].Size[0]; j++ {
 			for k := 0; k < m.Link[i].Size[1]; k++ {
 				_, err = writer.WriteString(strconv.FormatFloat(float64(m.Link[i].Weight[j][k]), 'f', -1, 32)) // Запись строки

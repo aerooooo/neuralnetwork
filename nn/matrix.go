@@ -1,8 +1,12 @@
 package nn
 
+// Training
+// Action
+
 type NN interface {
 	//
 	FillWeight()
+	CalcNeuron()
 }
 
 //var nn NN
