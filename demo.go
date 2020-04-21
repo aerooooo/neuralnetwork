@@ -11,7 +11,7 @@ func init() {
 
 func main() {
 	var (
-		miss		float32
+		rms			float32
 		bias		float32	= 0
 		ratio		float32	= .5
 		input	= []float32{1.2, 6.3}	// Входные параметры
@@ -28,26 +28,26 @@ func main() {
 	matrix.FillWeight()
 
 	// Обучение нейронной сети за какое-то количество эпох
-	for i := 0; i < 10; i++ {
-		matrix.CalcNeuron()                  // Вычисляем значения нейронов в слое
-		miss = matrix.CalcOutputError() // Вычисляем ошибки между обучающим набором и полученными выходными нейронами
-		matrix.CalcError()                   // Вычисляем ошибки нейронов в скрытых слоях
-		matrix.UpdWeight()                   // Обновление весов
-	}
+	/*for i := 0; i < 1; i++ {
+		matrix.CalcNeuron()					// Вычисляем значения нейронов в слое
+		rms = matrix.CalcOutputError()		// Вычисляем ошибки между обучающим набором и полученными выходными нейронами
+		matrix.CalcError()					// Вычисляем ошибки нейронов в скрытых слоях
+		matrix.UpdWeight()					// Обновление весов
+	}*/
 
 	err := matrix.WriteWeight("weight.dat")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = matrix.ReadWeight("weight.dat")
+	/*err = matrix.ReadWeight("weight.dat")
 	if err != nil {
 		log.Fatal(err)
-	}
+	}*/
 
-	nn.Get()
-	nn.GetOutput(bias, input, &matrix)
+	//nn.Get()
+	//nn.GetOutput(bias, input, &matrix)
 
 	// Вывод значений нейросети
-	matrix.PrintNN(miss)
+	matrix.PrintNN(rms)
 }

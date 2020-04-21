@@ -10,6 +10,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // Collection of neural network matrix parameters
@@ -100,6 +101,7 @@ func (m *Matrix) Init(mode uint8, bias, ratio float32, input, data []float32, hi
 // The function fills all weights with random numbers from -0.5 to 0.5
 // Функция заполняет все веса случайными числами от -0.5 до 0.5
 func (m *Matrix) FillWeight() {
+	rand.Seed(time.Now().UTC().UnixNano())
 	for i := 0; i < m.Index; i++ {
 		n := m.Link[i].Size[0] - 1
 		for j := 0; j < m.Link[i].Size[0]; j++ {
@@ -131,13 +133,13 @@ func (m *Matrix) CalcNeuron() {
 
 // Function for calculating the error of the output neuron
 // Функция вычисления ошибки выходного нейрона
-func (m *Matrix) CalcOutputError() (miss float32) {
-	miss = 0
+func (m *Matrix) CalcOutputError() (rms float32) {
+	rms = 0
 	for i, v := range m.Layer[m.Index].Neuron {
 		m.Layer[m.Index].Error[i] = (m.Data[i] - v) * GetDerivative(v, 0)
-		miss += float32(math.Pow(float64(m.Layer[m.Index].Error[i]), 2))
+		rms += float32(math.Pow(float64(m.Layer[m.Index].Error[i]), 2))
 	}
-	return miss
+	return rms
 }
 
 // Function for calculating the error of neurons in hidden layers
