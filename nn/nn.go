@@ -21,7 +21,7 @@ type Matrix struct {
 	Mode	uint8		// Идентификатор функции активации: 0 - Sigmoid, 1 - Leaky ReLu, 2 - Tanh
 	Bias	float32		// Нейрон смещения: от 0 до 1
 	Ratio 	float32		// Коэффициент обучения, от 0 до 1
-	Limit	float32		// Минимальный уровень обучения
+	Limit	float32		// Минимальный уровень квадратичной суммы ошибки при обучения
 	Data	[]float32	// Обучающий набор с которым будет сравниваться выходной слой
 	Layer	[]Layer		// Коллекция слоя
 	Link	[]Weight	// Коллекция весов
@@ -196,10 +196,10 @@ func GetDerivative(value float32, mode uint8) float32 {
 }
 
 // Функция вывода результатов нейросети
-func (m *Matrix) PrintNN(collision float32) {
+func (m *Matrix) PrintNN(rms float32) {
+	var i int
 	t := "Layer"
-	n := m.Size - 1
-	for i := 0; i < m.Size; i++ {
+	for i = 0; i < m.Size; i++ {
 		if i == len(m.Layer) - 1 {
 			t = " Output layer"
 		}
@@ -208,10 +208,10 @@ func (m *Matrix) PrintNN(collision float32) {
 		fmt.Println("Errors:\t\t", m.Layer[i].Error)
 	}
 	fmt.Println("Weights:")
-	for i := 0; i < n; i++ {
+	for i = 0; i < m.Index; i++ {
 		fmt.Println(m.Link[i].Weight)
 	}
-	fmt.Println("Total Error:\t", collision)
+	fmt.Println("Total Error:\t", rms)
 }
 
 // Записываем данные вессов в файла

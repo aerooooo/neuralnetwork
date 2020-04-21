@@ -28,22 +28,22 @@ func main() {
 	matrix.FillWeight()
 
 	// Обучение нейронной сети за какое-то количество эпох
-	/*for i := 0; i < 1; i++ {
+	for i := 0; i < 1; i++ {
 		matrix.CalcNeuron()					// Вычисляем значения нейронов в слое
 		rms = matrix.CalcOutputError()		// Вычисляем ошибки между обучающим набором и полученными выходными нейронами
 		matrix.CalcError()					// Вычисляем ошибки нейронов в скрытых слоях
 		matrix.UpdWeight()					// Обновление весов
-	}*/
+	}
 
 	err := matrix.WriteWeight("weight.dat")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	/*err = matrix.ReadWeight("weight.dat")
+	err = matrix.ReadWeight("weight.dat")
 	if err != nil {
 		log.Fatal(err)
-	}*/
+	}
 
 	//nn.Get()
 	//nn.GetOutput(bias, input, &matrix)
