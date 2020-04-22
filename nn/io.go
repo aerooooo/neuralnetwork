@@ -10,14 +10,14 @@ import (
 )
 
 // Функция вывода результатов нейросети
-func (m *Matrix) Print(fault float32) {
+func (m *Matrix) Print(loss float32) {
 	var i int
 	t := "Layer"
 	for i = 0; i < m.Size; i++ {
 		if i == len(m.Layer) - 1 {
 			t = " Output layer"
 		}
-		fmt.Println(i, t, "size: ", m.Layer[i].Size)
+		fmt.Printf("%v %s size: %v\n", i, t, m.Layer[i].Size)
 		fmt.Println("Neurons:\t", m.Layer[i].Neuron)
 		fmt.Println("Errors:\t\t", m.Layer[i].Error)
 	}
@@ -25,7 +25,7 @@ func (m *Matrix) Print(fault float32) {
 	for i = 0; i < m.Index; i++ {
 		fmt.Println(m.Synapse[i].Weight)
 	}
-	fmt.Println("Total Error:\t", fault)
+	fmt.Println("Total Error:\t", loss)
 }
 
 // Записываем данные вессов в файл

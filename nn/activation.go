@@ -3,20 +3,19 @@ package nn
 import "math"
 
 const (
-	IDENTITY	uint8 = 0	// Identity - тождественная
-	SIGMOID		uint8 = 1	// Logistic (a.k.a. Sigmoid or Soft step)
-	TANH		uint8 = 2	// TanH - гиперболический тангенс
-	RELU		uint8 = 3	// ReLu - rectified linear unit / линейный выпрямитель
-	LEAKYRELU	uint8 = 4	// Leaky ReLu - линейный выпрямитель с «утечкой»
+	IDENTITY	uint8 = 0	// Identity (тождественная)
+	SIGMOID		uint8 = 1	// Logistic, a.k.a. sigmoid or soft step (логистическая, сигмоида или гладкая ступенька)
+	TANH		uint8 = 2	// TanH - hyperbolic (гиперболический тангенс)
+	RELU		uint8 = 3	// ReLu - rectified linear unit (линейный выпрямитель)
+	LEAKYRELU	uint8 = 4	// Leaky ReLu - leaky rectified linear unit (линейный выпрямитель с «утечкой»)
 )
 
 // Activation Function
-// Функция активации
 func GetActivation(value float32, mode uint8) float32 {
 	switch mode {
-	default: fallthrough
 	case IDENTITY:
 		return value
+	default: fallthrough
 	case SIGMOID:
 		return float32(1 / (1 + math.Pow(math.E, float64(-value))))
 	case TANH:
@@ -38,12 +37,11 @@ func GetActivation(value float32, mode uint8) float32 {
 }
 
 // Derivative Activation Function
-// Функция производной активации
 func GetDerivative(value float32, mode uint8) float32 {
 	switch mode {
-	default: fallthrough
 	case IDENTITY:
 		return 1
+	default: fallthrough
 	case SIGMOID:
 		return value * (1 - value)
 	case TANH:

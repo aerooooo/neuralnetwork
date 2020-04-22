@@ -5,8 +5,8 @@ package nn
 
 type NN interface {
 	//
-	FillWeight()
-	CalcNeuron()
+	//FillWeight()
+	//CalcNeuron()
 }
 
 //var nn NN
