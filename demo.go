@@ -49,4 +49,6 @@ func main() {
 
 	// Вывод значений нейросети
 	matrix.Print(loss)
+
+	nn.Measure(new(nn.Matrix))
 }
