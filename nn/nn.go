@@ -12,7 +12,7 @@ type Matrix struct {
 	Index	int			// Индекс выходного (последнего) слоя нейросети
 	Mode	uint8		// Идентификатор функции активации
 	Bias	float32		// Нейрон смещения: от 0 до 1
-	Ratio 	float32		// Коэффициент обучения, от 0 до 1
+	Rate 	float32		// Коэффициент обучения, от 0 до 1
 	Limit	float32		// Минимальный уровень квадратичной суммы ошибки при обучения
 	Data	[]float32	// Обучающий набор с которым будет сравниваться выходной слой
 	Layer	[]Layer		// Коллекция слоя
@@ -42,27 +42,27 @@ func GetOutput(bias float32, input []float32, matrix *Matrix) []float32 {
 }
 
 // Matrix initialization function
-func (m *Matrix) Init(mode uint8, bias, ratio float32, input, data []float32, hidden []int) {
+func (m *Matrix) Init(mode uint8, rate, bias float32, input, data []float32, hidden []int) {
 	var i, j int
+	m.Mode = mode
+	m.Rate = rate
+	switch {
+	case bias < 0: m.Bias = 0
+	case bias > 1: m.Bias = 1
+	default: 	   m.Bias = bias
+	}
 	layer := []int{len(input)}
-	for _, v := range hidden {
-		layer = append(layer, v)
+	for _, j = range hidden {
+		layer = append(layer, j)
 	}
 	layer     = append(layer, len(data))
 	m.Size    = len(layer)
 	m.Index   = m.Size - 1
 	m.Layer   = make([]Layer,   m.Size)
 	m.Synapse = make([]Synapse, m.Index)
-	m.Data    = make([]float32, m.Index)
-	m.Ratio   = ratio
-	m.Mode    = mode
+	m.Data    = make([]float32, layer[m.Index])
 	for i, j = range layer {
 		m.Layer[i].Size = j
-	}
-	switch {
-	case bias < 0: m.Bias = 0
-	case bias > 1: m.Bias = 1
-	default: 	   m.Bias = bias
 	}
 	for i = 0; i < m.Size; i++ {
 		m.Layer[i].Neuron = make([]float32, m.Layer[i].Size)
@@ -120,7 +120,7 @@ func (m *Matrix) CalcOutputError() (loss float32) {
 		m.Layer[m.Index].Error[i] = (m.Data[i] - v) * GetDerivative(v, m.Mode)
 		loss += float32(math.Pow(float64(m.Layer[m.Index].Error[i]), 2))
 	}
-	return loss
+	return loss / float32(m.Layer[m.Index].Size)
 }
 
 // Function for calculating the error of neurons in hidden layers
@@ -142,7 +142,7 @@ func (m *Matrix) UpdWeight() {
 		n := i - 1
 		for j, v := range m.Layer[i].Error {
 			for k, p := range m.Layer[n].Neuron {
-				m.Synapse[n].Weight[k][j] += m.Ratio * v * p * GetDerivative(m.Layer[i].Neuron[j], m.Mode)
+				m.Synapse[n].Weight[k][j] += m.Rate * v * p * GetDerivative(m.Layer[i].Neuron[j], m.Mode)
 			}
 		}
 	}

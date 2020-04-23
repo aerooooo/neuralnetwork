@@ -14,8 +14,8 @@ func (m *Matrix) Print(loss float32) {
 	var i int
 	t := "Layer"
 	for i = 0; i < m.Size; i++ {
-		if i == len(m.Layer) - 1 {
-			t = " Output layer"
+		if i == m.Index {
+			t = "Output layer"
 		}
 		fmt.Printf("%v %s size: %v\n", i, t, m.Layer[i].Size)
 		fmt.Println("Neurons:\t", m.Layer[i].Neuron)

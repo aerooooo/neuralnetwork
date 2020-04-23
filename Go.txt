@@ -1,5 +1,6 @@
 Keywords:
 ----------------------------------------
+append
 break
 cap
 case
@@ -23,7 +24,7 @@ import
 init					func init() {}
 	interface
 make					m := make([]int, 50, 100)		m := new([capacity]int)[0:length]
-mane					func main() {}
+main					func main() {}
 map						var m map[string]int		m := make(map[string][]int)		m := map[string]int{}
 new
 len
