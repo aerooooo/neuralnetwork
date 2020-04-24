@@ -11,10 +11,11 @@ type Matrix struct {
 	Size	int			// Количество слоёв в нейросети (Input + Hidden + Output)
 	Index	int			// Индекс выходного (последнего) слоя нейросети
 	Mode	uint8		// Идентификатор функции активации
-	Bias	float32		// Нейрон смещения: от 0 до 1
 	Rate 	float32		// Коэффициент обучения, от 0 до 1
-	Limit	float32		// Минимальный уровень квадратичной суммы ошибки при обучения
+	Bias	float32		// Нейрон смещения: от 0 до 1
+	Limit	float32		// Минимальный уровень средне-квадратичной суммы ошибки при обучения
 	Data	[]float32	// Обучающий набор с которым будет сравниваться выходной слой
+	Hidden	[]int		// Массив количеств нейронов в каждом скрытом слое
 	Layer	[]Layer		// Коллекция слоя
 	Synapse	[]Synapse	// Коллекция весов связей
 }
@@ -42,10 +43,11 @@ func GetOutput(bias float32, input []float32, matrix *Matrix) []float32 {
 }
 
 // Matrix initialization function
-func (m *Matrix) Init(mode uint8, rate, bias float32, input, data []float32, hidden []int) {
+func (m *Matrix) Init(mode uint8, rate, bias, limit float32, input, data []float32, hidden []int) {
 	var i, j int
-	m.Mode = mode
-	m.Rate = rate
+	m.Mode  = mode
+	m.Rate  = rate
+	m.Limit = limit
 	switch {
 	case bias < 0: m.Bias = 0
 	case bias > 1: m.Bias = 1

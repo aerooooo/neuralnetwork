@@ -7,7 +7,7 @@ import "fmt"
 
 type NN interface {
 	//Init()
-	FillWeight()
+	//FillWeight()
 	CalcNeuron()
 	/*CalcOutputError()
 	CalcError()
@@ -18,7 +18,7 @@ type NN interface {
 func Measure(g NN) {
 
 	fmt.Println("--start--")
-	g.FillWeight()
+
 	fmt.Println("--end--")
 	g.CalcNeuron()
 	//fmt.Println(g.Print(.002))

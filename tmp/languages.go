@@ -1,4 +1,4 @@
-package lib
+package test
 
 var languages map[string]string
 

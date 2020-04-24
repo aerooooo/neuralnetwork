@@ -14,6 +14,7 @@ func main() {
 		loss	float32
 		bias	float32 = 1
 		rate	float32 = .5
+		limit	float32 = .01
 		input	= []float32{1.2, 6.3}	// Входные параметры
 		data	= []float32{6.3, 3.2}	// Обучающий набор с которым будет сравниваться выходной слой
 		hidden	= []int{5, 4}			// Массив количеств нейронов в каждом скрытом слое
@@ -22,7 +23,7 @@ func main() {
 
 	// Инициализация нейросети
 	var matrix nn.Matrix
-	matrix.Init(mode, rate, bias, input, data, hidden)
+	matrix.Init(mode, rate, bias, limit, input, data, hidden)
 
 	// Заполняем все веса случайными числами от -0.5 до 0.5
 	matrix.FillWeight()
@@ -50,5 +51,6 @@ func main() {
 	// Вывод значений нейросети
 	matrix.Print(loss)
 
-	nn.Measure(new(nn.Matrix))
+	//mm := new(nn.Matrix)
+	//nn.Measure(mm)
 }
