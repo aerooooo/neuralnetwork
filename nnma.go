@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/teratron/neuralnetwork/nn"
@@ -29,8 +30,9 @@ func main() {
 
 	//matrix.Init(mode, rate, bias, limit, input, data, hidden)
 
-	//
+	// Считываем данные из файла
 	datafile := "ma_EURUSD_#1768.dat"
+
 	file, err := os.Open(datafile)
 	if err != nil {
 		log.Fatalln(err)
@@ -39,7 +41,10 @@ func main() {
 
 	reader := bufio.NewReader(file)
 
-	i := 0
+	i, j := 0, 0
+	var v string
+	var array [][]float32
+	array = make([][]float32, 1)
 	for {
 		if line, err := reader.ReadString('\n'); err != nil {
 			if err == io.EOF {
@@ -49,57 +54,16 @@ func main() {
 			}
 		} else {
 			line = strings.Trim(line,"\n")
-			if len(line) > 0 {
-				i++
-				fmt.Println(line)
-			} else {
-				break
+			if strings.HasSuffix(line, "\r") {
+				line = strings.Trim(line,"\r")
 			}
-		}
-	}
-	fmt.Println(i,reader)
-	var array [][]float32
-	array = make([][]float32, i, i)
-	array[0] = make([]float32, i, i)
-
-	//reader = bufio.NewReader(file)
-
-	reader.Reset(file)
-	line, err := reader.ReadString('\n')
-	//fmt.Println(line)
-	/*if err != nil {
-		log.Println(err)
-	} else {*/
-		for i = range strings.Split(line, "\t") {
-			i++
-		}
-	//}
-
-	//fmt.Println(i,reader)
-
-
-	// Считываем данные из файла
-	/*file, err := os.Open(datafile)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	defer file.Close()
-
-	reader := bufio.NewReader(file)
-	for i := 0;; {
-		line, err := reader.ReadString('\n')
-		if err != nil {
-			if err == io.EOF {
-				break
-			} else {
-				log.Fatalln(err)
-			}
-		} else {
-			line = strings.Trim(line,"\n")
 			if len(line) > 0 {
-				for j, v := range strings.Split(line, "\t") {
+				array = make([][]float32, i + 1)
+				for j, v = range strings.Split(line, "\t") {
 					if f, err := strconv.ParseFloat(v, 32); err == nil {
-						Weight[i][j] = float32(f)
+						//array[i] = make([]float32, j + 1)
+						//array[i][j] = float32(f)
+						array[i] = append(array[i], float32(f))
 					} else {
 						log.Fatalln(err)
 					}
@@ -109,5 +73,14 @@ func main() {
 				break
 			}
 		}
-	}*/
+	}
+	fmt.Println(i,j + 1, array[0][2])
+
+
+	//mx.Training(input, data)
+
+	err = mx.WriteWeight(datafile + ".weight")
+	if err != nil {
+		log.Fatal(err)
+	}
 }

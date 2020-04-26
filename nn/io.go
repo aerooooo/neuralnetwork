@@ -74,6 +74,9 @@ func (m *Matrix) ReadWeight(filename string) error {
 			}
 		} else {
 			line = strings.Trim(line,"\n")
+			if strings.HasSuffix(line, "\r") {
+				line = strings.Trim(line,"\r")
+			}
 			if len(line) > 0 {
 				for k, v := range strings.Split(line, "\t") {
 					if f, err := strconv.ParseFloat(v, 32); err == nil {

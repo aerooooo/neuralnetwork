@@ -6,9 +6,6 @@ import (
 	"github.com/teratron/neuralnetwork/nn"
 )
 
-func init() {
-}
-
 func main() {
 	var (
 		loss	float32
@@ -29,9 +26,12 @@ func main() {
 	matrix.FillWeight()
 
 	// Обучение нейронной сети за какое-то количество эпох
-	for i := 0; i < 1; i++ {
+	for i := 0; i < 10000; i++ {
 		matrix.CalcNeuron()					// Вычисляем значения нейронов в слое
-		loss = matrix.CalcOutputError()		// Вычисляем ошибки между обучающим набором и полученными выходными нейронами
+		// Вычисляем ошибки между обучающим набором и полученными выходными нейронами
+		if loss = matrix.CalcOutputError(); loss <= limit || loss <= .001 {
+			break
+		}
 		matrix.CalcError()					// Вычисляем ошибки нейронов в скрытых слоях
 		matrix.UpdWeight()					// Обновление весов
 	}

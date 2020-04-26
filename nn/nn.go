@@ -42,12 +42,21 @@ func GetOutput(bias float32, input []float32, matrix *Matrix) []float32 {
 	return matrix.Layer[matrix.Index].Neuron
 }
 
+//
 func (m *Matrix) Training(input, data []float32) (loss float32, err error) {
-	for i := 0; i < 1; i++ {
-		m.CalcNeuron()					// Вычисляем значения нейронов в слое
-		loss = m.CalcOutputError()		// Вычисляем ошибки между обучающим набором и полученными выходными нейронами
-		m.CalcError()					// Вычисляем ошибки нейронов в скрытых слоях
-		m.UpdWeight()					// Обновление весов
+	for {
+		// Вычисляем значения нейронов в слое
+		m.CalcNeuron()
+
+		// Вычисляем ошибки между обучающим набором и полученными выходными нейронами
+		if loss = m.CalcOutputError(); loss <= m.Limit || loss <= .001 {
+			break
+		}
+		// Вычисляем ошибки нейронов в скрытых слоях
+		m.CalcError()
+
+		// Обновление весов
+		m.UpdWeight()
 	}
 	return loss, err
 }
