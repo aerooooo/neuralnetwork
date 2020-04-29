@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"fmt"
 	"io"
 	"log"
 	"os"
@@ -11,8 +10,6 @@ import (
 
 	"github.com/teratron/neuralnetwork/nn"
 )
-
-//type array [][]float32
 
 func main() {
 	/*mx := nn.Matrix{
@@ -43,7 +40,6 @@ func main() {
 
 	reader := bufio.NewReader(file)
 	var dataset [][]float32
-	//dataset := array{}
 
 	for i := 0;; {
 		if line, err := reader.ReadString('\n'); err != nil {
@@ -69,24 +65,29 @@ func main() {
 				}
 				dataset[i] = make([]float32, len(row))
 				copy(dataset[i], row)
+
 				i++
 			} else {
 				break
 			}
 		}
 	}
-
 	//fmt.Println(len(dataset[0]))
 	//fmt.Println(len(dataset),cap(dataset))
 	//fmt.Println(dataset[len(dataset) - 1][0])
 
-	// Обучение
-	for i := range dataset {
-		for j, v := range dataset[i] {
-			fmt.Println(j,v)
-		}
-	}
+	// Initialization
 
+
+	//
+	mx.FillWeight()
+
+	// Обучение
+	/*for i := range dataset {
+		for j, v := range dataset[i] {
+			fmt.Println(j, v)
+		}
+	}*/
 	//count, loss := mx.Training(input, data)
 
 	// Записываем данные вессов в файл

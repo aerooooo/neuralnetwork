@@ -45,7 +45,7 @@ func GetOutput(bias float32, input []float32, matrix *Matrix) []float32 {
 //
 func (m *Matrix) Training(input, data []float32) (count int, loss float32) {
 	count = 1
-	for count <= 100000 {
+	for count <= 1000000 {
 		// Вычисляем значения нейронов в слое
 		m.CalcNeuron()
 
