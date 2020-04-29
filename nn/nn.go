@@ -13,7 +13,7 @@ type Matrix struct {
 	Mode	uint8		// Идентификатор функции активации
 	Rate 	float32		// Коэффициент обучения, от 0 до 1
 	Bias	float32		// Нейрон смещения: от 0 до 1
-	Limit	float32		// Минимальный уровень средне-квадратичной суммы ошибки при обучения
+	Limit	float32		// Минимальный уровень средней квадратичной суммы ошибки при обучения
 	Data	[]float32	// Обучающий набор с которым будет сравниваться выходной слой
 	Hidden	[]int		// Массив количеств нейронов в каждом скрытом слое
 	Layer	[]Layer		// Коллекция слоя
@@ -43,22 +43,26 @@ func GetOutput(bias float32, input []float32, matrix *Matrix) []float32 {
 }
 
 //
-func (m *Matrix) Training(input, data []float32) (loss float32, err error) {
-	for {
+func (m *Matrix) Training(input, data []float32) (count int, loss float32) {
+	count = 1
+	for count <= 100000 {
 		// Вычисляем значения нейронов в слое
 		m.CalcNeuron()
 
 		// Вычисляем ошибки между обучающим набором и полученными выходными нейронами
-		if loss = m.CalcOutputError(); loss <= m.Limit || loss <= .001 {
+		if loss = m.CalcOutputError(); loss <= m.Limit || loss <= .0001 {
 			break
 		}
+
 		// Вычисляем ошибки нейронов в скрытых слоях
 		m.CalcError()
 
-		// Обновление весов
+		// Update weights
 		m.UpdWeight()
+
+		count++
 	}
-	return loss, err
+	return count, loss
 }
 
 // Matrix initialization function

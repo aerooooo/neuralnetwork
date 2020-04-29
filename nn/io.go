@@ -65,8 +65,7 @@ func (m *Matrix) ReadWeight(filename string) error {
 
 	reader := bufio.NewReader(file)
 	for i, j := 0, 0;; {
-		line, err := reader.ReadString('\n')
-		if err != nil {
+		if line, err := reader.ReadString('\n'); err != nil {
 			if err == io.EOF {
 				break
 			} else {

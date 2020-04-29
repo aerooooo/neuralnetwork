@@ -10,12 +10,12 @@ const (
 	LEAKYRELU	uint8 = 4	// Leaky ReLu - leaky rectified linear unit (линейный выпрямитель с «утечкой»)
 )
 
-// Activation Function
+// Activation function
 func GetActivation(value float32, mode uint8) float32 {
 	switch mode {
+	default: fallthrough
 	case IDENTITY:
 		return value
-	default: fallthrough
 	case SIGMOID:
 		return float32(1 / (1 + math.Pow(math.E, float64(-value))))
 	case TANH:
@@ -36,12 +36,12 @@ func GetActivation(value float32, mode uint8) float32 {
 	}
 }
 
-// Derivative Activation Function
+// Derivative activation function
 func GetDerivative(value float32, mode uint8) float32 {
 	switch mode {
+	default: fallthrough
 	case IDENTITY:
 		return 1
-	default: fallthrough
 	case SIGMOID:
 		return value * (1 - value)
 	case TANH:

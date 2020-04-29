@@ -39,12 +39,14 @@ func main() {
 	}
 	defer file.Close()
 
+	//reader1 := bufio.NewReaderSize(file, 1000)
 	reader := bufio.NewReader(file)
 
 	i, j := 0, 0
 	var v string
 	var array [][]float32
-	array = make([][]float32, 1)
+	//array = make([][]float32, 1)
+	//fmt.Println(array)
 	for {
 		if line, err := reader.ReadString('\n'); err != nil {
 			if err == io.EOF {
@@ -59,11 +61,12 @@ func main() {
 			}
 			if len(line) > 0 {
 				array = make([][]float32, i + 1)
+				array[i] = make([]float32, 3)
 				for j, v = range strings.Split(line, "\t") {
 					if f, err := strconv.ParseFloat(v, 32); err == nil {
-						//array[i] = make([]float32, j + 1)
-						//array[i][j] = float32(f)
-						array[i] = append(array[i], float32(f))
+						array[i][j] = float32(f)
+						//array[i][j] = append(array[i], float32(f))
+						//fmt.Println(i,j,float32(f))
 					} else {
 						log.Fatalln(err)
 					}
@@ -74,13 +77,15 @@ func main() {
 			}
 		}
 	}
-	fmt.Println(i,j + 1, array[0][2])
+	fmt.Println(array)
+	fmt.Println(i,j + 1, reader)
 
+	// Обучение
+	//count, loss := mx.Training(input, data)
 
-	//mx.Training(input, data)
-
-	err = mx.WriteWeight(datafile + ".weight")
+	// Записываем данные вессов в файл
+	/*err = mx.WriteWeight(datafile + ".weight")
 	if err != nil {
 		log.Fatal(err)
-	}
+	}*/
 }
