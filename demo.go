@@ -11,7 +11,7 @@ func main() {
 		loss	float32
 		bias	float32 = 1
 		rate	float32 = .5
-		limit	float32 = .01
+		limit	float32 = .001
 		input	= []float32{1.2, 6.3}	// Входные параметры
 		data	= []float32{6.3, 3.2}	// Обучающий набор с которым будет сравниваться выходной слой
 		hidden	= []int{5, 4}			// Массив количеств нейронов в каждом скрытом слое
@@ -29,7 +29,7 @@ func main() {
 	for i := 0; i < 10000; i++ {
 		matrix.CalcNeuron()					// Вычисляем значения нейронов в слое
 		// Вычисляем ошибки между обучающим набором и полученными выходными нейронами
-		if loss = matrix.CalcOutputError(); loss <= limit || loss <= .001 {
+		if loss = matrix.CalcOutputError(data); loss <= limit || loss <= .0001 {
 			break
 		}
 		matrix.CalcError()					// Вычисляем ошибки нейронов в скрытых слоях

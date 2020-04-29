@@ -14,7 +14,7 @@ type Matrix struct {
 	Rate 	float32		// Коэффициент обучения, от 0 до 1
 	Bias	float32		// Нейрон смещения: от 0 до 1
 	Limit	float32		// Минимальный уровень средней квадратичной суммы ошибки при обучения
-	Data	[]float32	// Обучающий набор с которым будет сравниваться выходной слой
+	//Data	[]float32	// Обучающий набор с которым будет сравниваться выходной слой
 	Hidden	[]int		// Массив количеств нейронов в каждом скрытом слое
 	Layer	[]Layer		// Коллекция слоя
 	Synapse	[]Synapse	// Коллекция весов связей
@@ -50,7 +50,7 @@ func (m *Matrix) Training(input, data []float32) (count int, loss float32) {
 		m.CalcNeuron()
 
 		// Вычисляем ошибки между обучающим набором и полученными выходными нейронами
-		if loss = m.CalcOutputError(); loss <= m.Limit || loss <= .0001 {
+		if loss = m.CalcOutputError(data); loss <= m.Limit || loss <= .0001 {
 			break
 		}
 
@@ -85,7 +85,7 @@ func (m *Matrix) Init(mode uint8, rate, bias, limit float32, input, data []float
 	m.Index   = m.Size - 1
 	m.Layer   = make([]Layer,   m.Size)
 	m.Synapse = make([]Synapse, m.Index)
-	m.Data    = make([]float32, layer[m.Index])
+	//m.Data    = make([]float32, layer[m.Index])
 	for i, j = range layer {
 		m.Layer[i].Size = j
 	}
@@ -104,7 +104,7 @@ func (m *Matrix) Init(mode uint8, rate, bias, limit float32, input, data []float
 		}
 	}
 	copy(m.Layer[0].Neuron, input)
-	copy(m.Data, data)
+	//copy(m.Data, data)
 }
 
 // The function fills all weights with random numbers from -0.5 to 0.5
@@ -139,10 +139,10 @@ func (m *Matrix) CalcNeuron() {
 }
 
 // Function for calculating the error of the output neuron
-func (m *Matrix) CalcOutputError() (loss float32) {
+func (m *Matrix) CalcOutputError(data []float32) (loss float32) {
 	loss = 0
 	for i, v := range m.Layer[m.Index].Neuron {
-		m.Layer[m.Index].Error[i] = (m.Data[i] - v) * GetDerivative(v, m.Mode)
+		m.Layer[m.Index].Error[i] = (data[i] - v) * GetDerivative(v, m.Mode)
 		loss += float32(math.Pow(float64(m.Layer[m.Index].Error[i]), 2))
 	}
 	return loss / float32(m.Layer[m.Index].Size)

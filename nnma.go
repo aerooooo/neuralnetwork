@@ -12,6 +12,8 @@ import (
 	"github.com/teratron/neuralnetwork/nn"
 )
 
+//type array [][]float32
+
 func main() {
 	/*mx := nn.Matrix{
 		Mode:	nn.TANH,
@@ -39,15 +41,11 @@ func main() {
 	}
 	defer file.Close()
 
-	//reader1 := bufio.NewReaderSize(file, 1000)
 	reader := bufio.NewReader(file)
+	var dataset [][]float32
+	//dataset := array{}
 
-	i, j := 0, 0
-	var v string
-	var array [][]float32
-	//array = make([][]float32, 1)
-	//fmt.Println(array)
-	for {
+	for i := 0;; {
 		if line, err := reader.ReadString('\n'); err != nil {
 			if err == io.EOF {
 				break
@@ -60,27 +58,35 @@ func main() {
 				line = strings.Trim(line,"\r")
 			}
 			if len(line) > 0 {
-				array = make([][]float32, i + 1)
-				array[i] = make([]float32, 3)
-				for j, v = range strings.Split(line, "\t") {
+				var row []float32
+				dataset = append(dataset, row)
+				for _, v := range strings.Split(line, "\t") {
 					if f, err := strconv.ParseFloat(v, 32); err == nil {
-						array[i][j] = float32(f)
-						//array[i][j] = append(array[i], float32(f))
-						//fmt.Println(i,j,float32(f))
+						row = append(row, float32(f))
 					} else {
 						log.Fatalln(err)
 					}
 				}
+				dataset[i] = make([]float32, len(row))
+				copy(dataset[i], row)
 				i++
 			} else {
 				break
 			}
 		}
 	}
-	fmt.Println(array)
-	fmt.Println(i,j + 1, reader)
+
+	//fmt.Println(len(dataset[0]))
+	//fmt.Println(len(dataset),cap(dataset))
+	//fmt.Println(dataset[len(dataset) - 1][0])
 
 	// Обучение
+	for i := range dataset {
+		for j, v := range dataset[i] {
+			fmt.Println(j,v)
+		}
+	}
+
 	//count, loss := mx.Training(input, data)
 
 	// Записываем данные вессов в файл
