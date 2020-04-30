@@ -7,6 +7,7 @@ import (
 )
 
 const (
+	DEFRATE	float32	= .3
 	MINLOSS	float32	= .001		// Минимальная величина средней квадратичной суммы ошибки при достижении которой обучение прекращается принудительно
 	MAXITER	int 	= 1000000	// Максимальная количество иттреаций по достижению которой обучение прекращается принудительно
 )
@@ -126,16 +127,34 @@ func (m *Matrix) Initializing(input, data []float32) bool {
 // Matrix initialization function
 func (m *Matrix) InitMatrix(mode uint8, epoch int, rate, bias, limit float32, input, data []float32, hidden []int) {
 	m.Mode   = mode
-	m.Rate   = rate
-	m.Limit  = limit
 	m.Epoch  = epoch
 	m.Hidden = hidden
+	m.Rate   = checkRate(rate)
+	m.Bias   = checkBias(bias)
+	m.Limit  = checkLimit(limit)
+	m.Init   = m.Initializing(input, data)
+}
+
+func checkBias(bias float32) float32 {
 	switch {
-	case bias < 0: m.Bias = 0
-	case bias > 1: m.Bias = 1
-	default: 	   m.Bias = bias
+	case bias < 0: return 0
+	case bias > 1: return 1
+	default: 	   return bias
 	}
-	m.Init = m.Initializing(input, data)
+}
+
+func checkLimit(limit float32) float32 {
+	switch {
+	case limit < 0: return MINLOSS
+	default:		return limit
+	}
+}
+
+func checkRate(rate float32) float32 {
+	switch {
+	case rate < 0 || rate > 1: return DEFRATE
+	default:				   return rate
+	}
 }
 
 // The function fills all weights with random numbers from -0.5 to 0.5
