@@ -1,23 +1,22 @@
 package nn
 
 import (
-	"errors"
 	"math"
 	"math/rand"
 	"time"
 )
 
 const (
-	MINLOSS	float32	= .0001		// Минимальная величина средней квадратичной суммы ошибки при достижении которой обучение прекращается принудительно
+	MINLOSS	float32	= .001		// Минимальная величина средней квадратичной суммы ошибки при достижении которой обучение прекращается принудительно
 	MAXITER	int 	= 1000000	// Максимальная количество иттреаций по достижению которой обучение прекращается принудительно
 )
 
 // Declare conformity with NN interface
-var _ NN = (*Matrix)(nil)
+//var _ NN = (*Matrix)(nil)
 
 // Collection of neural network matrix parameters
 type Matrix struct {
-	Init	bool		//
+	Init	bool		// Флаг устанавливайющий что матрица была инициализированна
 	Size	int			// Количество слоёв в нейросети (Input + Hidden + Output)
 	Index	int			// Индекс выходного (последнего) слоя нейросети
 	Epoch	int			// Количество эпох обучения
@@ -55,9 +54,6 @@ func (s *Synapse) setSize(size []int) {
 	s.Size = size
 }*/
 
-/*func init() {
-}*/
-
 //
 /*func GetOutput(bias float32, input []float32, matrix *Matrix) []float32 {
 	matrix.CalcNeuron()
@@ -65,13 +61,9 @@ func (s *Synapse) setSize(size []int) {
 }*/
 
 //
-func (m *Matrix) Training(input, data []float32) (count int, loss float32, err error) {
+func (m *Matrix) Training(input, data []float32) (count int, loss float32) {
 	if !m.Init {
-		init, err := m.Initializing(input, data)
-		if err != nil {
-			return 0, 0, err
-		}
-		m.Init = init
+		m.Init = m.Initializing(input, data)
 	}
 	var sum float32 = 0
 	num := 0
@@ -89,17 +81,15 @@ func (m *Matrix) Training(input, data []float32) (count int, loss float32, err e
 		sum += loss
 		num += count
 	}
-	return num / count, loss / float32(count), nil
+	return num / count, sum / float32(count)
 }
 
 //
-func (m *Matrix) Initializing(input, data []float32) (init bool, err error) {
+func (m *Matrix) Initializing(input, data []float32) bool {
 	var i, j int
 	layer := []int{len(input)}
 
-	if m.Hidden == nil {
-		return false, errors.New("not initialized array of the number of neurons in each hidden layer")
-	} else {
+	if m.Hidden != nil {
 		for i, j = range m.Hidden {
 			if j > 0 {
 				layer = append(layer, j)
@@ -130,28 +120,22 @@ func (m *Matrix) Initializing(input, data []float32) (init bool, err error) {
 	}
 	copy(m.Layer[0].Neuron, input)
 
-	return true, nil
+	return true
 }
 
 // Matrix initialization function
-func (m *Matrix) InitMatrix(mode uint8, rate, bias, limit float32, input, data []float32, hidden []int) error {
+func (m *Matrix) InitMatrix(mode uint8, epoch int, rate, bias, limit float32, input, data []float32, hidden []int) {
 	m.Mode   = mode
 	m.Rate   = rate
 	m.Limit  = limit
+	m.Epoch  = epoch
 	m.Hidden = hidden
 	switch {
 	case bias < 0: m.Bias = 0
 	case bias > 1: m.Bias = 1
 	default: 	   m.Bias = bias
 	}
-	if !m.Init {
-		init, err := m.Initializing(input, data)
-		if err != nil {
-			return err
-		}
-		m.Init = init
-	}
-	return nil
+	m.Init = m.Initializing(input, data)
 }
 
 // The function fills all weights with random numbers from -0.5 to 0.5

@@ -16,10 +16,7 @@ func main() {
 
 	// Инициализация нейросети
 	var matrix nn.Matrix
-	err := matrix.InitMatrix(nn.SIGMOID, .5, 1, .001, input, data, hidden)
-	if err != nil {
-		log.Fatal(err)
-	}
+	matrix.InitMatrix(nn.SIGMOID, 4,.5, 1, .01, input, data, hidden)
 
 	// Заполняем все веса случайными числами от -0.5 до 0.5
 	matrix.FillWeight()
@@ -35,7 +32,7 @@ func main() {
 		matrix.UpdWeight()					// Обновление весов
 	}
 
-	err = matrix.WriteWeight("weight.dat")
+	err := matrix.WriteWeight("weight.dat")
 	if err != nil {
 		log.Fatal(err)
 	}
