@@ -1,20 +1,30 @@
 package nn
 
 import (
+	"errors"
 	"math"
 	"math/rand"
 	"time"
 )
 
+const (
+	MINLOSS	float32	= .0001		// Минимальная величина средней квадратичной суммы ошибки при достижении которой обучение прекращается принудительно
+	MAXITER	int 	= 1000000	// Максимальная количество иттреаций по достижению которой обучение прекращается принудительно
+)
+
+// Declare conformity with NN interface
+var _ NN = (*Matrix)(nil)
+
 // Collection of neural network matrix parameters
 type Matrix struct {
+	Init	bool		//
 	Size	int			// Количество слоёв в нейросети (Input + Hidden + Output)
 	Index	int			// Индекс выходного (последнего) слоя нейросети
+	Epoch	int			// Количество эпох обучения
 	Mode	uint8		// Идентификатор функции активации
 	Rate 	float32		// Коэффициент обучения, от 0 до 1
 	Bias	float32		// Нейрон смещения: от 0 до 1
-	Limit	float32		// Минимальный уровень средней квадратичной суммы ошибки при обучения
-	//Data	[]float32	// Обучающий набор с которым будет сравниваться выходной слой
+	Limit	float32		// Минимальный/достаточный уровень средней квадратичной суммы ошибки при обучения
 	Hidden	[]int		// Массив количеств нейронов в каждом скрытом слое
 	Layer	[]Layer		// Коллекция слоя
 	Synapse	[]Synapse	// Коллекция весов связей
@@ -33,59 +43,74 @@ type Synapse struct {
 	Weight	[][]float32	// Значения весов
 }
 
-func init() {
+/*func (m *Matrix) setSize(size int) {
+	m.Size = size
 }
 
+func (l *Layer) setSize(size int) {
+	l.Size = size
+}
+
+func (s *Synapse) setSize(size []int) {
+	s.Size = size
+}*/
+
+/*func init() {
+}*/
+
 //
-func GetOutput(bias float32, input []float32, matrix *Matrix) []float32 {
+/*func GetOutput(bias float32, input []float32, matrix *Matrix) []float32 {
 	matrix.CalcNeuron()
 	return matrix.Layer[matrix.Index].Neuron
+}*/
+
+//
+func (m *Matrix) Training(input, data []float32) (count int, loss float32, err error) {
+	if !m.Init {
+		init, err := m.Initializing(input, data)
+		if err != nil {
+			return 0, 0, err
+		}
+		m.Init = init
+	}
+	var sum float32 = 0
+	num := 0
+	for epoch := 0; epoch < m.Epoch; epoch++ {
+		count = 1
+		for count <= MAXITER {
+			m.CalcNeuron()
+			if loss = m.CalcOutputError(data); loss <= m.Limit || loss <= MINLOSS {
+				break
+			}
+			m.CalcError()
+			m.UpdWeight()
+			count++
+		}
+		sum += loss
+		num += count
+	}
+	return num / count, loss / float32(count), nil
 }
 
 //
-func (m *Matrix) Training(input, data []float32) (count int, loss float32) {
-	count = 1
-	for count <= 1000000 {
-		// Вычисляем значения нейронов в слое
-		m.CalcNeuron()
-
-		// Вычисляем ошибки между обучающим набором и полученными выходными нейронами
-		if loss = m.CalcOutputError(data); loss <= m.Limit || loss <= .0001 {
-			break
-		}
-
-		// Вычисляем ошибки нейронов в скрытых слоях
-		m.CalcError()
-
-		// Update weights
-		m.UpdWeight()
-
-		count++
-	}
-	return count, loss
-}
-
-// Matrix initialization function
-func (m *Matrix) Init(mode uint8, rate, bias, limit float32, input, data []float32, hidden []int) {
+func (m *Matrix) Initializing(input, data []float32) (init bool, err error) {
 	var i, j int
-	m.Mode  = mode
-	m.Rate  = rate
-	m.Limit = limit
-	switch {
-	case bias < 0: m.Bias = 0
-	case bias > 1: m.Bias = 1
-	default: 	   m.Bias = bias
-	}
 	layer := []int{len(input)}
-	for _, j = range hidden {
-		layer = append(layer, j)
+
+	if m.Hidden == nil {
+		return false, errors.New("not initialized array of the number of neurons in each hidden layer")
+	} else {
+		for i, j = range m.Hidden {
+			if j > 0 {
+				layer = append(layer, j)
+			}
+		}
 	}
 	layer     = append(layer, len(data))
 	m.Size    = len(layer)
 	m.Index   = m.Size - 1
 	m.Layer   = make([]Layer,   m.Size)
 	m.Synapse = make([]Synapse, m.Index)
-	//m.Data    = make([]float32, layer[m.Index])
 	for i, j = range layer {
 		m.Layer[i].Size = j
 	}
@@ -104,7 +129,29 @@ func (m *Matrix) Init(mode uint8, rate, bias, limit float32, input, data []float
 		}
 	}
 	copy(m.Layer[0].Neuron, input)
-	//copy(m.Data, data)
+
+	return true, nil
+}
+
+// Matrix initialization function
+func (m *Matrix) InitMatrix(mode uint8, rate, bias, limit float32, input, data []float32, hidden []int) error {
+	m.Mode   = mode
+	m.Rate   = rate
+	m.Limit  = limit
+	m.Hidden = hidden
+	switch {
+	case bias < 0: m.Bias = 0
+	case bias > 1: m.Bias = 1
+	default: 	   m.Bias = bias
+	}
+	if !m.Init {
+		init, err := m.Initializing(input, data)
+		if err != nil {
+			return err
+		}
+		m.Init = init
+	}
+	return nil
 }
 
 // The function fills all weights with random numbers from -0.5 to 0.5

@@ -11,20 +11,33 @@ import (
 
 // Функция вывода результатов нейросети
 func (m *Matrix) Print(loss float32) {
-	var i int
-	t := "Layer"
+	var (
+		i int
+		t string
+	)
+	sep := func() {
+		fmt.Println("-----------------------")
+	}
 	for i = 0; i < m.Size; i++ {
-		if i == m.Index {
+		switch i {
+		case 0:
+			t = "Input layer"
+		case m.Index:
 			t = "Output layer"
+		default:
+			t = "Hidden layer"
 		}
 		fmt.Printf("%v %s size: %v\n", i, t, m.Layer[i].Size)
+		sep()
 		fmt.Println("Neurons:\t", m.Layer[i].Neuron)
-		fmt.Println("Errors:\t\t", m.Layer[i].Error)
+		fmt.Printf("Errors:\t\t %v\n\n", m.Layer[i].Error)
 	}
 	fmt.Println("Weights:")
+	sep()
 	for i = 0; i < m.Index; i++ {
 		fmt.Println(m.Synapse[i].Weight)
 	}
+	sep()
 	fmt.Println("Total Error:\t", loss)
 }
 

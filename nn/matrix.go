@@ -15,6 +15,10 @@ type NN interface {
 	Print()*/
 }
 
+type Sizer interface {
+	setSize(int)
+}
+
 func Measure(g NN) {
 
 	fmt.Println("--start--")

@@ -21,13 +21,16 @@ func main() {
 	}*/
 
 	mx := new(nn.Matrix)
+
+	//fmt.Println(mx.Init)
+
+	//mx.setSize(2)
+
 	mx.Mode   = nn.TANH
 	mx.Rate   = .3
 	mx.Bias   = 1
 	mx.Limit  = .01
 	mx.Hidden = []int{5, 4}
-
-	//matrix.Init(mode, rate, bias, limit, input, data, hidden)
 
 	// Считываем данные из файла
 	datafile := "ma_EURUSD_#1768.dat"
@@ -65,22 +68,21 @@ func main() {
 				}
 				dataset[i] = make([]float32, len(row))
 				copy(dataset[i], row)
-
 				i++
 			} else {
 				break
 			}
 		}
 	}
-	//fmt.Println(len(dataset[0]))
-	//fmt.Println(len(dataset),cap(dataset))
+	//fmt.Println(len(dataset[0]),len(dataset),cap(dataset))
 	//fmt.Println(dataset[len(dataset) - 1][0])
 
 	// Initialization
-
+	//numInput  := 3
+	//numOutput := 3
 
 	//
-	mx.FillWeight()
+	//mx.FillWeight()
 
 	// Обучение
 	/*for i := range dataset {
@@ -88,7 +90,10 @@ func main() {
 			fmt.Println(j, v)
 		}
 	}*/
-	//count, loss := mx.Training(input, data)
+	/*count, loss, err := mx.Training(input, data)
+	if err != nil {
+		log.Fatal(err)
+	}*/
 
 	// Записываем данные вессов в файл
 	/*err = mx.WriteWeight(datafile + ".weight")
