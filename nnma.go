@@ -33,7 +33,7 @@ func main() {
 	mx.Mode   = nn.TANH
 	mx.Rate   = .3
 	mx.Bias   = 1
-	mx.Epoch  = 4
+	//mx.Epoch  = 4
 	mx.Limit  = .01
 	mx.Hidden = []int{5, 4}
 
@@ -95,7 +95,9 @@ func main() {
 			fmt.Println(j, v)
 		}
 	}*/
-	/*count, loss, err := mx.Training(input, data)
+	/*
+	for epoch := 0; epoch < m.Epoch; epoch++ {
+	count, loss, err := mx.Training(input, data)
 	if err != nil {
 		log.Fatal(err)
 	}*/

@@ -4,32 +4,71 @@ import (
 	"fmt"
 )
 
-type phoneReader string
+const (
+	DEFRATE	float32	= .3
+	MINLOSS	float32	= .001
+)
 
-func (ph *phoneReader) Read(p *[]byte) /*(int, error)*/ {
-	h := *ph
-	z := *p
-	count := 0
-	for i := 0; i < len(h); i++ {
-		if h[i] >= '0' && h[i] <= '9' {
-			z[count] = h[i]
-			//fmt.Println(count, p[count])
-			count++
+type Checker interface {
+	Checking() float32
+}
 
-		}
+type MX struct {
+	Rate
+	Bias
+	Limit
+}
+
+type (
+	Rate  float32
+	Bias  float32
+	Limit float32
+)
+
+//var MX = (*MX)(nil)
+
+func (b Bias) Checking() float32 {
+	switch {
+	case b < 0: return 0
+	case b > 1: return 1
+	default: 	return float32(b)
 	}
-	//return count, io.EOF
+}
+
+func (l Limit) Checking() float32 {
+	switch {
+	case l < 0: return MINLOSS
+	default:	return float32(l)
+	}
+}
+
+func (r Rate) Checking() float32 {
+	switch {
+	case r < 0 || r > 1: return DEFRATE
+	default:			 return float32(r)
+	}
+}
+
+func Check(c ...Checker) {
+	for _, v := range c {
+		fmt.Println(v,v.Checking())
+	}
 }
 
 func main() {
-	phone1 := phoneReader("+1(234)567 9010")
-	phone2 := phoneReader("+2-345-678-12-35")
+	m := MX{}
 
-	buffer := make([]byte, len(phone1))
-	/*count, err := */phone1.Read(&buffer)
-	fmt.Println(/*count, err, */phone1, buffer, string(buffer))     // 12345679010
+	//fmt.Println(m.Bias)
+	m.Bias  = Bias(2.1)
+	m.Limit = Limit(-0.1)
+	m.Rate  = Rate(8.1)
 
-	buffer = make([]byte, len(phone2))
-	/*_, _ = */phone2.Read(&buffer)
-	fmt.Println(phone2, string(buffer))     // 23456781235
+	//D := [...]Checker{B, L, R}
+	Check(m.Bias, m.Limit, m.Rate)
+
+	fmt.Println(m.Bias.Checking())
+	fmt.Println(m.Limit.Checking())
+	fmt.Println(m.Rate.Checking())
+
+	//fmt.Println(bbb)
 }
