@@ -1,41 +1,38 @@
 package nn
 
-type Lister interface {
-	Enumerate()
-}
-
-type Array struct {}
-
-func (a Array) Enumerate() {
-}
-
 type Checker interface {
 	Checking() float32
 }
 
-type (
-	Rate  float32
-	Bias  float32
-	Limit float32
-)
-
-type NN interface {
-	//Init()
-	//FillWeight()
-	//CalcNeuron()
-	/*CalcOutputError()
-	CalcError()
-	UpdWeight()
-	Print()*/
+// Collection of neural network matrix parameters
+type Matrix struct {
+	Init	bool		// Флаг выполнения инициализации матрицы
+	Size	int			// Количество слоёв в нейросети (Input + Hidden + Output)
+	Index	int			// Индекс выходного (последнего) слоя нейросети
+	Mode	uint8		// Идентификатор функции активации
+	Bias	float32		// Нейрон смещения: от 0 до 1
+	Rate 	float32		// Коэффициент обучения, от 0 до 1
+	Limit	float32		// Минимальный (достаточный) уровень средней квадратичной суммы ошибки при обучения
+	Hidden	[]int		// Массив количеств нейронов в каждом скрытом слое
+	Layer	[]Layer		// Коллекция слоя
+	Synapse	[]Synapse	// Коллекция весов связей
 }
 
-//var nn NN
+// Collection of neural layer parameters
+type Layer struct {
+	Size	int			// Количество нейронов в слое
+	Neuron	[]float32	// Значения нейрона
+	Error	[]float32	// Значение ошибки
+}
 
-/*func SetCurrentApp(current NN) {
-	//nn = current
-}*/
-/*
-// CurrentApp returns the current application, for which there is only 1 per process.
-func CurrentApp() NN {
-	return nn
-}*/
+// Collection of weight parameters
+type Synapse struct {
+	Size	[]int		// Количество связей весов {X, Y}, X - входной (предыдущий) слой, Y - выходной (следующий) слой
+	Weight	[][]float32	// Значения весов
+}
+
+type (
+	Bias  float32
+	Rate  float32
+	Limit float32
+)

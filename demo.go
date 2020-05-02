@@ -15,7 +15,7 @@ func main() {
 
 	// Инициализация нейросети
 	var matrix nn.Matrix
-	matrix.InitMatrix(nn.SIGMOID, 1, .5, .01, input, data, hidden)
+	matrix.InitMatrix(nn.SIGMOID, 1, .5, .01, input, data, hidden...)
 
 	// Обучение нейронной сети за какое-то количество эпох
 	count, loss := matrix.Training(input, data)

@@ -7,46 +7,45 @@ import (
 )
 
 const (
-	DEFRATE	float32	= .3
+	DEFRATE	float32	= .3		// Default rate
 	MINLOSS	float32	= .001		// Минимальная величина средней квадратичной суммы ошибки при достижении которой обучение прекращается принудительно
 	MAXITER	int 	= 1000000	// Максимальная количество иттреаций по достижению которой обучение прекращается принудительно
 )
 
-// Collection of neural network matrix parameters
-type Matrix struct {
-	Init	bool		// Флаг выполнения инициализации матрицы
-	Size	int			// Количество слоёв в нейросети (Input + Hidden + Output)
-	Index	int			// Индекс выходного (последнего) слоя нейросети
-	Mode	uint8		// Идентификатор функции активации
-	Bias	float32		// Нейрон смещения: от 0 до 1
-	Rate 	float32		// Коэффициент обучения, от 0 до 1
-	Limit	float32		// Минимальный (достаточный) уровень средней квадратичной суммы ошибки при обучения
-	Hidden	[]int		// Массив количеств нейронов в каждом скрытом слое
-	Layer	[]Layer		// Коллекция слоя
-	Synapse	[]Synapse	// Коллекция весов связей
-}
-
-// Collection of neural layer parameters
-type Layer struct {
-	Size	int			// Количество нейронов в слое
-	Neuron	[]float32	// Значения нейрона
-	Error	[]float32	// Значение ошибки
-}
-
-// Collection of weight parameters
-type Synapse struct {
-	Size	[]int		// Количество связей весов {X, Y}, X - входной (предыдущий) слой, Y - выходной (следующий) слой
-	Weight	[][]float32	// Значения весов
-}
-
 // Matrix initialization function
-func (m *Matrix) InitMatrix(mode uint8, bias, rate, limit float32, input, data []float32, hidden []int) {
+func (m *Matrix) InitMatrix(mode uint8, bias Bias, rate Rate, limit Limit, input, data []float32, hidden ...int) {
 	m.Mode   = mode
+	m.Bias   = Check(bias)
+	m.Rate   = Check(rate)
+	m.Limit  = Check(limit)
 	m.Hidden = hidden
-	m.Bias   = checkBias(bias)
-	m.Rate   = checkRate(rate)
-	m.Limit  = checkLimit(limit)
 	m.Init   = m.Initializing(input, data)
+}
+
+func (b Bias) Checking() float32 {
+	switch {
+	case b < 0: return 0
+	case b > 1: return 1
+	default: 	return float32(b)
+	}
+}
+
+func (r Rate) Checking() float32 {
+	switch {
+	case r < 0 || r > 1: return DEFRATE
+	default:			 return float32(r)
+	}
+}
+
+func (l Limit) Checking() float32 {
+	switch {
+	case l < 0: return MINLOSS
+	default:	return float32(l)
+	}
+}
+
+func Check(c Checker) float32 {
+	return c.Checking()
 }
 
 // Matrix initialization function
@@ -61,14 +60,17 @@ func (m *Matrix) Initializing(input, data []float32) bool {
 			}
 		}
 	}
+
 	layer     = append(layer, len(data))
 	m.Size    = len(layer)
 	m.Index   = m.Size - 1
 	m.Layer   = make([]Layer,   m.Size)
 	m.Synapse = make([]Synapse, m.Index)
+
 	for i, j = range layer {
 		m.Layer[i].Size = j
 	}
+
 	for i = 0; i < m.Size; i++ {
 		m.Layer[i].Neuron = make([]float32, m.Layer[i].Size)
 		if i > 0 {
@@ -83,8 +85,10 @@ func (m *Matrix) Initializing(input, data []float32) bool {
 			}
 		}
 	}
+
 	copy(m.Layer[0].Neuron, input)
 	m.FillWeight()
+
 	return true
 }
 
@@ -109,28 +113,6 @@ func (m *Matrix) Training(input, data []float32) (count int, loss float32) {
 func (m *Matrix) GetOutput(data []float32) float32 {
 	m.CalcNeuron()
 	return m.CalcOutputError(data)
-}
-
-func checkBias(bias float32) float32 {
-	switch {
-	case bias < 0: return 0
-	case bias > 1: return 1
-	default: 	   return bias
-	}
-}
-
-func checkLimit(limit float32) float32 {
-	switch {
-	case limit < 0: return MINLOSS
-	default:		return limit
-	}
-}
-
-func checkRate(rate float32) float32 {
-	switch {
-	case rate < 0 || rate > 1: return DEFRATE
-	default:				   return rate
-	}
 }
 
 // The function fills all weights with random numbers from -0.5 to 0.5
