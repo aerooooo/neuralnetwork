@@ -1,5 +1,8 @@
 package nn
 
+type NN interface {
+}
+
 type Checker interface {
 	Checking() float32
 }
@@ -32,7 +35,8 @@ type Synapse struct {
 }
 
 type (
-	Bias  float32
-	Rate  float32
-	Limit float32
+	FloatType	float32
+	Bias		FloatType
+	Rate		FloatType
+	Limit		FloatType
 )

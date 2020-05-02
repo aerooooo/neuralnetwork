@@ -1,27 +1,51 @@
 package main
 
-import (
-	"fmt"
-)
+import "fmt"
 
 type Lister interface {
 	Enumerate()
 }
 
-type Array struct {}
-
-func (a Array) Enumerate() {
+type Array struct {
+	Bias
 }
 
-type NN interface {
-	/*Init()
+type Bias float64
+
+func (a Array) Enumerate()  {
+	fmt.Println(a.Bias)
+}
+func (b Bias) Enumerate()  {
+	fmt.Println(b)
+}
+
+func main() {
+	//a := Array{}
+
+	var b Lister
+
+	c := Array{/*Bias(.5)*/}
+	b = Bias(.1)
+
+	c.Enumerate()
+	b.Enumerate()
+
+	//fmt.Println(a.Bias)
+
+	//a.Bias = Bias(0.1)
+
+	//fmt.Println(a.Bias)
+}
+
+/*type NN interface {
+	Init()
 	FillWeight()
 	CalcNeuron()
 	CalcOutputError()
 	CalcError()
 	UpdWeight()
-	Print()*/
-}
+	Print()
+}*/
 //var nn NN
 /*func SetCurrentApp(current NN) {
 	//nn = current
@@ -31,7 +55,3 @@ type NN interface {
 func CurrentApp() NN {
 	return nn
 }*/
-
-func main() {
-	fmt.Println(1)
-}

@@ -13,13 +13,17 @@ const (
 )
 
 // Matrix initialization function
-func (m *Matrix) InitMatrix(mode uint8, bias Bias, rate Rate, limit Limit, input, data []float32, hidden ...int) {
+func (m *Matrix) InitMatrix(mode uint8, bias, rate, limit FloatType, input, data []float32, hidden ...int) {
 	m.Mode   = mode
-	m.Bias   = Check(bias)
-	m.Rate   = Check(rate)
-	m.Limit  = Check(limit)
+	m.Bias   = bias.Checking()
+	m.Rate   = rate.Checking()
+	m.Limit  = limit.Checking()
 	m.Hidden = hidden
 	m.Init   = m.Initializing(input, data)
+}
+
+func (f FloatType) Checking() float32 {
+	return float32(f)
 }
 
 func (b Bias) Checking() float32 {
@@ -42,10 +46,6 @@ func (l Limit) Checking() float32 {
 	case l < 0: return MINLOSS
 	default:	return float32(l)
 	}
-}
-
-func Check(c Checker) float32 {
-	return c.Checking()
 }
 
 // Matrix initialization function
