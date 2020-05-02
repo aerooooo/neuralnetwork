@@ -1,31 +1,32 @@
 package nn
 
-import "fmt"
+type Lister interface {
+	Enumerate()
+}
 
-// Training
-// Action
+type Array struct {}
+
+func (a Array) Enumerate() {
+}
+
+type Checker interface {
+	Checking() float32
+}
+
+type (
+	Rate  float32
+	Bias  float32
+	Limit float32
+)
 
 type NN interface {
 	//Init()
 	//FillWeight()
-	CalcNeuron()
+	//CalcNeuron()
 	/*CalcOutputError()
 	CalcError()
 	UpdWeight()
 	Print()*/
-}
-
-type Sizer interface {
-	setSize(int)
-}
-
-func Measure(g NN) {
-
-	fmt.Println("--start--")
-
-	fmt.Println("--end--")
-	g.CalcNeuron()
-	//fmt.Println(g.Print(.002))
 }
 
 //var nn NN

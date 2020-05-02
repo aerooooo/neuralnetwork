@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"fmt"
 	"io"
 	"log"
 	"os"
@@ -12,13 +11,7 @@ import (
 	"github.com/teratron/neuralnetwork/nn"
 )
 
-type ddd float32
-
 func main() {
-
-	d := (*ddd)(nil)
-	fmt.Println(d)
-
 	/*mx := nn.Matrix{
 		Mode:	nn.TANH,
 		Rate:	.3,
@@ -29,11 +22,9 @@ func main() {
 	}*/
 
 	mx := new(nn.Matrix)
-	//mx.setSize(2)
 	mx.Mode   = nn.TANH
 	mx.Rate   = .3
 	mx.Bias   = 1
-	//mx.Epoch  = 4
 	mx.Limit  = .01
 	mx.Hidden = []int{5, 4}
 
@@ -96,7 +87,7 @@ func main() {
 		}
 	}*/
 	/*
-	for epoch := 0; epoch < m.Epoch; epoch++ {
+	for epoch := 0; epoch < 4; epoch++ {
 	count, loss, err := mx.Training(input, data)
 	if err != nil {
 		log.Fatal(err)

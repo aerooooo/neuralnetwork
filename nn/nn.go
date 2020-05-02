@@ -11,51 +11,15 @@ const (
 	MINLOSS	float32	= .001		// Минимальная величина средней квадратичной суммы ошибки при достижении которой обучение прекращается принудительно
 	MAXITER	int 	= 1000000	// Максимальная количество иттреаций по достижению которой обучение прекращается принудительно
 )
-/*
-type Checker interface {
-	Checking() float32
-}
-
-type (
-	Rate	float32
-	Bias	float32
-	Limit	float32
-)
-
-func (b Bias) Checking() Bias {
-	switch {
-	case b < 0: return 0
-	case b > 1: return 1
-	default: 	return b
-	}
-}
-
-func (l Limit) Checking() Limit {
-	switch {
-	case l < 0: return Limit(MINLOSS)
-	default:	return l
-	}
-}
-
-func (r Rate) Checking() Rate {
-	switch {
-	case r < 0 || r > 1: return Rate(DEFRATE)
-	default:			 return r
-	}
-}*/
-
-// Declare conformity with NN interface
-//var _ NN = (*Matrix)(nil)
 
 // Collection of neural network matrix parameters
 type Matrix struct {
 	Init	bool		// Флаг выполнения инициализации матрицы
 	Size	int			// Количество слоёв в нейросети (Input + Hidden + Output)
 	Index	int			// Индекс выходного (последнего) слоя нейросети
-	//Epoch	int			// Количество эпох обучения
 	Mode	uint8		// Идентификатор функции активации
-	Rate 	float32		// Коэффициент обучения, от 0 до 1
 	Bias	float32		// Нейрон смещения: от 0 до 1
+	Rate 	float32		// Коэффициент обучения, от 0 до 1
 	Limit	float32		// Минимальный (достаточный) уровень средней квадратичной суммы ошибки при обучения
 	Hidden	[]int		// Массив количеств нейронов в каждом скрытом слое
 	Layer	[]Layer		// Коллекция слоя
@@ -75,32 +39,17 @@ type Synapse struct {
 	Weight	[][]float32	// Значения весов
 }
 
-//
-/*func GetOutput(bias float32, input []float32, matrix *Matrix) []float32 {
-	matrix.CalcNeuron()
-	return matrix.Layer[matrix.Index].Neuron
-}*/
-
-//
-func (m *Matrix) Training(input, data []float32) (count int, loss float32) {
-	//mx := *m
-	if !m.Init {
-		m.Init = m.Initializing(input, data)
-	}
-	count = 1
-	for count <= MAXITER {
-		m.CalcNeuron()
-		if loss = m.CalcOutputError(data); loss <= m.Limit || loss <= MINLOSS {
-			break
-		}
-		m.CalcError()
-		m.UpdWeight()
-		count++
-	}
-	return count, loss
+// Matrix initialization function
+func (m *Matrix) InitMatrix(mode uint8, bias, rate, limit float32, input, data []float32, hidden []int) {
+	m.Mode   = mode
+	m.Hidden = hidden
+	m.Bias   = checkBias(bias)
+	m.Rate   = checkRate(rate)
+	m.Limit  = checkLimit(limit)
+	m.Init   = m.Initializing(input, data)
 }
 
-//
+// Matrix initialization function
 func (m *Matrix) Initializing(input, data []float32) bool {
 	var i, j int
 	layer := []int{len(input)}
@@ -135,19 +84,31 @@ func (m *Matrix) Initializing(input, data []float32) bool {
 		}
 	}
 	copy(m.Layer[0].Neuron, input)
-
+	m.FillWeight()
 	return true
 }
 
-// Matrix initialization function
-func (m *Matrix) InitMatrix(mode uint8, epoch int, rate, bias, limit float32, input, data []float32, hidden []int) {
-	m.Mode   = mode
-	//m.Epoch  = epoch
-	m.Hidden = hidden
-	m.Rate   = checkRate(rate)
-	m.Bias   = checkBias(bias)
-	m.Limit  = checkLimit(limit)
-	m.Init   = m.Initializing(input, data)
+// Training
+func (m *Matrix) Training(input, data []float32) (count int, loss float32) {
+	if !m.Init {
+		m.Init = m.Initializing(input, data)
+	}
+	count = 1
+	for count <= MAXITER {
+		if loss = m.GetOutput(data); loss <= m.Limit || loss <= MINLOSS {
+			break
+		}
+		m.CalcError()
+		m.UpdWeight()
+		count++
+	}
+	return count, loss
+}
+
+//
+func (m *Matrix) GetOutput(data []float32) float32 {
+	m.CalcNeuron()
+	return m.CalcOutputError(data)
 }
 
 func checkBias(bias float32) float32 {
