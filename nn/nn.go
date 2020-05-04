@@ -7,19 +7,53 @@ import (
 )
 
 const (
-	DEFRATE	float32	= .3		// Default rate
-	MINLOSS	float32	= .001		// Минимальная величина средней квадратичной суммы ошибки при достижении которой обучение прекращается принудительно
-	MAXITER	int 	= 1000000	// Максимальная количество иттреаций по достижению которой обучение прекращается принудительно
+	DEFRATE float32 = .3      // Default rate
+	MINLOSS float32 = .001    // Минимальная величина средней квадратичной суммы ошибки при достижении которой обучение прекращается принудительно
+	MAXITER int     = 1000000 // Максимальная количество итреаций по достижению которой обучение прекращается принудительно
+)
+
+// Collection of neural network matrix parameters
+type Matrix struct {
+	Init    bool      // Флаг выполнения инициализации матрицы
+	Size    int       // Количество слоёв в нейросети (Input + Hidden + Output)
+	Index   int       // Индекс выходного (последнего) слоя нейросети
+	Mode    uint8     // Идентификатор функции активации
+	Bias    float32   // Нейрон смещения: от 0 до 1
+	Rate    float32   // Коэффициент обучения, от 0 до 1
+	Limit   float32   // Минимальный (достаточный) уровень средней квадратичной суммы ошибки при обучения
+	Hidden  []int     // Массив количеств нейронов в каждом скрытом слое
+	Layer   []Layer   // Коллекция слоя
+	Synapse []Synapse // Коллекция весов связей
+}
+
+// Collection of neural layer parameters
+type Layer struct {
+	Size   int       // Количество нейронов в слое
+	Neuron []float32 // Значения нейрона
+	Error  []float32 // Значение ошибки
+}
+
+// Collection of weight parameters
+type Synapse struct {
+	Size   []int       // Количество связей весов {X, Y}, X - входной (предыдущий) слой, Y - выходной (следующий) слой
+	Weight [][]float32 // Значения весов
+}
+
+type (
+	FloatType float32
+	Bias      FloatType
+	Rate      FloatType
+	Limit     FloatType
 )
 
 // Matrix initialization function
 func (m *Matrix) InitMatrix(mode uint8, bias, rate, limit FloatType, input, data []float32, hidden ...int) {
-	m.Mode   = mode
-	m.Bias   = bias.Checking()
-	m.Rate   = rate.Checking()
-	m.Limit  = limit.Checking()
+	m.Mode = mode
+	m.Bias = bias.Checking()
+	m.Rate = rate.Checking()
+	m.Limit = limit.Checking()
 	m.Hidden = hidden
-	m.Init   = m.Initializing(input, data)
+	m.Init = m.Initializing(input, data)
 }
 
 func (f FloatType) Checking() float32 {
@@ -28,23 +62,30 @@ func (f FloatType) Checking() float32 {
 
 func (b Bias) Checking() float32 {
 	switch {
-	case b < 0: return 0
-	case b > 1: return 1
-	default: 	return float32(b)
+	case b < 0:
+		return 0
+	case b > 1:
+		return 1
+	default:
+		return float32(b)
 	}
 }
 
 func (r Rate) Checking() float32 {
 	switch {
-	case r < 0 || r > 1: return DEFRATE
-	default:			 return float32(r)
+	case r < 0 || r > 1:
+		return DEFRATE
+	default:
+		return float32(r)
 	}
 }
 
 func (l Limit) Checking() float32 {
 	switch {
-	case l < 0: return MINLOSS
-	default:	return float32(l)
+	case l < 0:
+		return MINLOSS
+	default:
+		return float32(l)
 	}
 }
 
@@ -61,10 +102,10 @@ func (m *Matrix) Initializing(input, data []float32) bool {
 		}
 	}
 
-	layer     = append(layer, len(data))
-	m.Size    = len(layer)
-	m.Index   = m.Size - 1
-	m.Layer   = make([]Layer,   m.Size)
+	layer = append(layer, len(data))
+	m.Size = len(layer)
+	m.Index = m.Size - 1
+	m.Layer = make([]Layer, m.Size)
 	m.Synapse = make([]Synapse, m.Index)
 
 	for i, j = range layer {
@@ -77,8 +118,8 @@ func (m *Matrix) Initializing(input, data []float32) bool {
 			m.Layer[i].Error = make([]float32, m.Layer[i].Size)
 		}
 		if i < m.Index {
-			m.Layer[i].Neuron   = append(m.Layer[i].Neuron, m.Bias)
-			m.Synapse[i].Size   = []int{m.Layer[i].Size + 1, m.Layer[i + 1].Size}
+			m.Layer[i].Neuron = append(m.Layer[i].Neuron, m.Bias)
+			m.Synapse[i].Size = []int{m.Layer[i].Size + 1, m.Layer[i+1].Size}
 			m.Synapse[i].Weight = make([][]float32, m.Synapse[i].Size[0])
 			for j = 0; j < m.Synapse[i].Size[0]; j++ {
 				m.Synapse[i].Weight[j] = make([]float32, m.Synapse[i].Size[1])
@@ -161,7 +202,7 @@ func (m *Matrix) CalcError() {
 	for i := m.Size - 2; i > 0; i-- {
 		for j := 0; j < m.Layer[i].Size; j++ {
 			var sum float32 = 0
-			for k, v := range m.Layer[i + 1].Error {
+			for k, v := range m.Layer[i+1].Error {
 				sum += v * m.Synapse[i].Weight[j][k]
 			}
 			m.Layer[i].Error[j] = sum * GetDerivative(m.Layer[i].Neuron[j], m.Mode)

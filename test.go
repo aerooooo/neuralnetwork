@@ -12,19 +12,18 @@ type Array struct {
 
 type Bias float64
 
-func (a Array) Enumerate()  {
+func (a Array) Enumerate() {
 	fmt.Println(a.Bias)
 }
-func (b Bias) Enumerate()  {
+func (b Bias) Enumerate() {
 	fmt.Println(b)
 }
 
 func main() {
 	//a := Array{}
-
 	var b Lister
 
-	c := Array{/*Bias(.5)*/}
+	c := Array{ /*Bias(.5)*/ }
 	b = Bias(.1)
 
 	c.Enumerate()
