@@ -47,7 +47,7 @@ type (
 )
 
 // Matrix initialization function
-func (m *Matrix) InitMatrix(mode uint8, bias, rate, limit FloatType, input, data []float32, hidden ...int) {
+func (m *Matrix) InitMatrix(mode uint8, bias, rate, limit FloatType, input, data []float32, hidden []int) {
 	m.Mode = mode
 	m.Bias = bias.Checking()
 	m.Rate = rate.Checking()
@@ -144,7 +144,7 @@ func (m *Matrix) Training(input, data []float32) (count int, loss float32) {
 			break
 		}
 		m.CalcError()
-		m.UpdWeight()
+		m.UpdateWeight()
 		count++
 	}
 	return count, loss
@@ -178,13 +178,17 @@ func (m *Matrix) CalcNeuron() {
 	for i := 1; i < m.Size; i++ {
 		n := i - 1
 		for j := 0; j < m.Layer[i].Size; j++ {
-			var sum float32 = 0
-			for k, v := range m.Layer[n].Neuron {
-				sum += v * m.Synapse[n].Weight[k][j]
-			}
-			m.Layer[i].Neuron[j] = GetActivation(sum, m.Mode)
+			/*go*/ m.GetNeuron(i, j, n)
 		}
 	}
+}
+
+func (m *Matrix) GetNeuron(i, j, n int) {
+	var sum float32 = 0
+	for k, v := range m.Layer[n].Neuron {
+		sum += v * m.Synapse[n].Weight[k][j]
+	}
+	m.Layer[i].Neuron[j] = GetActivation(sum, m.Mode)
 }
 
 // Function for calculating the error of the output neuron
@@ -211,7 +215,7 @@ func (m *Matrix) CalcError() {
 }
 
 // Weights update function
-func (m *Matrix) UpdWeight() {
+func (m *Matrix) UpdateWeight() {
 	for i := 1; i < m.Size; i++ {
 		n := i - 1
 		for j, v := range m.Layer[i].Error {

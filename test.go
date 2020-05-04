@@ -42,7 +42,7 @@ func main() {
 	CalcNeuron()
 	CalcOutputError()
 	CalcError()
-	UpdWeight()
+	UpdateWeight()
 	Print()
 }*/
 //var nn NN

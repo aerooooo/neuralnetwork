@@ -8,14 +8,14 @@ import (
 
 func main() {
 	var (
-		input	= []float32{1.2, 6.3}	// Входные параметры
-		data	= []float32{6.3, 3.2}	// Обучающий набор с которым будет сравниваться выходной слой
-		hidden	= []int{5, 4}			// Массив количеств нейронов в каждом скрытом слое
+		input  = []float32{1.2, 6.3} // Входные параметры
+		data   = []float32{6.3, 3.2} // Обучающий набор с которым будет сравниваться выходной слой
+		hidden = []int{5, 4}         // Массив количеств нейронов в каждом скрытом слое
 	)
 
 	// Инициализация нейросети
 	var matrix nn.Matrix
-	matrix.InitMatrix(nn.SIGMOID, 1, .5, .01, input, data, hidden...)
+	matrix.InitMatrix(nn.SIGMOID, 1, .5, .01, input, data, hidden)
 
 	// Обучение нейронной сети за какое-то количество эпох
 	count, loss := matrix.Training(input, data)
