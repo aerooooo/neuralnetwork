@@ -173,22 +173,22 @@ func (m *Matrix) FillWeight() {
 	}
 }
 
-// Function for calculating the values of neurons in a layer
+// Function for calculating the values of neurons in a layers
 func (m *Matrix) CalcNeuron() {
 	for i := 1; i < m.Size; i++ {
-		n := i - 1
+		k := i - 1
 		for j := 0; j < m.Layer[i].Size; j++ {
-			/*go*/ m.GetNeuron(i, j, n)
+			/*go*/ m.GetNeuron(i, j, k)
 		}
 	}
 }
 
-func (m *Matrix) GetNeuron(i, j, n int) {
+func (m *Matrix) GetNeuron(x, y, z int) {
 	var sum float32 = 0
-	for k, v := range m.Layer[n].Neuron {
-		sum += v * m.Synapse[n].Weight[k][j]
+	for i, v := range m.Layer[z].Neuron {
+		sum += v * m.Synapse[z].Weight[i][y]
 	}
-	m.Layer[i].Neuron[j] = GetActivation(sum, m.Mode)
+	m.Layer[x].Neuron[y] = GetActivation(sum, m.Mode)
 }
 
 // Function for calculating the error of the output neuron

@@ -21,7 +21,8 @@ func main() {
 		Hidden:	[]int{5, 4},
 	}*/
 
-	mx := new(nn.Matrix)
+	//mx := new(nn.Matrix)
+	var mx nn.Matrix
 	mx.Mode   = nn.TANH
 	mx.Rate   = .3
 	mx.Bias   = 1
@@ -29,9 +30,9 @@ func main() {
 	mx.Hidden = []int{5, 4}
 
 	// Считываем данные из файла
-	datafile := "ma_EURUSD_#1768.dat"
+	filename := "nnma/nnma_EURUSD_M60_2-5-8_0_0.dat"
 
-	file, err := os.Open(datafile)
+	file, err := os.Open(filename)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -70,8 +71,11 @@ func main() {
 			}
 		}
 	}
-	//fmt.Println(len(dataset[0]),len(dataset),cap(dataset))
+	//fmt.Println(dataset[0],len(dataset),cap(dataset))
 	//fmt.Println(dataset[len(dataset) - 1][0])
+
+	// Вывод значений нейросети
+	//mx.Print(0, 0)
 
 	// Initialization
 	//numInput  := 3
@@ -94,7 +98,7 @@ func main() {
 	}*/
 
 	// Записываем данные вессов в файл
-	/*err = mx.WriteWeight(datafile + ".weight")
+	/*err = mx.WriteWeight(filename + ".weight")
 	if err != nil {
 		log.Fatal(err)
 	}*/
