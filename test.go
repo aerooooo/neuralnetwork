@@ -35,22 +35,3 @@ func main() {
 
 	//fmt.Println(a.Bias)
 }
-
-/*type NN interface {
-	Init()
-	FillWeight()
-	CalcNeuron()
-	CalcOutputError()
-	CalcError()
-	UpdateWeight()
-	Print()
-}*/
-//var nn NN
-/*func SetCurrentApp(current NN) {
-	//nn = current
-}*/
-/*
-// CurrentApp returns the current application, for which there is only 1 per process.
-func CurrentApp() NN {
-	return nn
-}*/

@@ -14,7 +14,7 @@ const (
 
 // Collection of neural network matrix parameters
 type Matrix struct {
-	Init    bool      // Флаг выполнения инициализации матрицы
+	isInit  bool      // Флаг инициализации матрицы
 	Size    int       // Количество слоёв в нейросети (Input + Hidden + Output)
 	Index   int       // Индекс выходного (последнего) слоя нейросети
 	Mode    uint8     // Идентификатор функции активации
@@ -48,12 +48,12 @@ type (
 
 // Matrix initialization function
 func (m *Matrix) InitMatrix(mode uint8, bias, rate, limit FloatType, input, data []float32, hidden []int) {
-	m.Mode = mode
-	m.Bias = bias.Checking()
-	m.Rate = rate.Checking()
-	m.Limit = limit.Checking()
+	m.Mode   = mode
+	m.Bias   = bias.Checking()
+	m.Rate   = rate.Checking()
+	m.Limit  = limit.Checking()
 	m.Hidden = hidden
-	m.Init = m.Initializing(input, data)
+	m.isInit = m.Initializing(input, data)
 }
 
 func (f FloatType) Checking() float32 {
@@ -135,8 +135,8 @@ func (m *Matrix) Initializing(input, data []float32) bool {
 
 // Training
 func (m *Matrix) Training(input, data []float32) (count int, loss float32) {
-	if !m.Init {
-		m.Init = m.Initializing(input, data)
+	if !m.isInit {
+		m.isInit = m.Initializing(input, data)
 	}
 	count = 1
 	for count <= MAXITER {
@@ -176,20 +176,25 @@ func (m *Matrix) FillWeight() {
 // Function for calculating the values of neurons in a layers
 func (m *Matrix) CalcNeuron() {
 	for i := 1; i < m.Size; i++ {
-		k := i - 1
+		n := i - 1
 		for j := 0; j < m.Layer[i].Size; j++ {
-			/*go*/ m.GetNeuron(i, j, k)
+			/*go m.GetNeuron(i, j, k)*/
+			var sum float32 = 0
+			for k, v := range m.Layer[n].Neuron {
+				sum += v * m.Synapse[n].Weight[k][j]
+			}
+			m.Layer[i].Neuron[j] = GetActivation(sum, m.Mode)
 		}
 	}
 }
 
-func (m *Matrix) GetNeuron(x, y, z int) {
+/*func (m *Matrix) GetNeuron(x, y, z int) {
 	var sum float32 = 0
 	for i, v := range m.Layer[z].Neuron {
 		sum += v * m.Synapse[z].Weight[i][y]
 	}
 	m.Layer[x].Neuron[y] = GetActivation(sum, m.Mode)
-}
+}*/
 
 // Function for calculating the error of the output neuron
 func (m *Matrix) CalcOutputError(data []float32) (loss float32) {
