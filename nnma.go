@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -27,7 +28,10 @@ func main() {
 	mx.Rate   = .3
 	mx.Bias   = 1
 	mx.Limit  = .01
-	mx.Hidden = []int{5, 4}
+	mx.Hidden = []int{11, 7}
+	//isMirror     := true
+	numInputBar  := 3
+	//numOutputBar := 3
 
 	// Считываем данные из файла
 	filename := "nnma/nnma_EURUSD_M60_2-5-8_0_0.dat"
@@ -38,8 +42,8 @@ func main() {
 	}
 	defer file.Close()
 
-	reader := bufio.NewReader(file)
-	var dataset [][]float32
+	reader  := bufio.NewReader(file)
+	dataset := make([][]float32, 0)
 
 	for i := 0;; {
 		if line, err := reader.ReadString('\n'); err != nil {
@@ -72,14 +76,47 @@ func main() {
 		}
 	}
 	//fmt.Println(dataset[0],len(dataset),cap(dataset))
-	//fmt.Println(dataset[len(dataset) - 1][0])
+	//fmt.Println(dataset[len(dataset) - 1][0],dataset[len(dataset) - 1][1],dataset[len(dataset) - 1][2])
+	//fmt.Println(io.SeekEnd)
+
+	// Обучение
+	var input  []float32
+	//var output []float32
+	//for epoch := 0; epoch < 4; epoch++ {
+		for i := numInputBar; i <= numInputBar /*+ 1len(dataset)*/; i++ {
+			d := getArray(dataset[i - numInputBar:i])
+			/*d := make([]float32, 0)
+			for _, r := range dataset[i - numInputBar:i] {
+				d = append(d, r...)
+			}*/
+			//fmt.Println(d)
+
+			k := len(d)
+			input = make([]float32, k)
+			for _, v := range d {
+				k--
+				input[k] = v
+			}
+			fmt.Println(input)
+
+
+
+			d = getArray(dataset[i - numInputBar:i])
+			k = len(d)
+			fmt.Println(d)
+		}
+	//}
+
+	/*for i, v := range dataset[numInputBar - 1:numInputBar][:] {
+		fmt.Println(i, v)
+	}*/
 
 	// Вывод значений нейросети
 	//mx.Print(0, 0)
 
 	// Initialization
-	//numInput  := 3
-	//numOutput := 3
+
+
 
 	//
 	//mx.FillWeight()
@@ -92,9 +129,7 @@ func main() {
 	}*/
 	/*
 	for epoch := 0; epoch < 4; epoch++ {
-	count, loss, err := mx.Training(input, data)
-	if err != nil {
-		log.Fatal(err)
+	count, loss := mx.Training(input, data)
 	}*/
 
 	// Записываем данные вессов в файл
@@ -102,4 +137,12 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}*/
+}
+
+func getArray(dataset [][]float32) []float32 {
+	d := make([]float32, 0)
+	for _, r := range dataset {
+		d = append(d, r...)
+	}
+	return d
 }

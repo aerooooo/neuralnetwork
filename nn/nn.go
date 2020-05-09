@@ -15,7 +15,7 @@ const (
 // Collection of neural network matrix parameters
 type Matrix struct {
 	isInit  bool      // Флаг инициализации матрицы
-	Size    int       // Количество слоёв в нейросети (Input + Hidden + Output)
+	Size    int       // Количество слоёв в нейросети (Input + Hidden... + Output)
 	Index   int       // Индекс выходного (последнего) слоя нейросети
 	Mode    uint8     // Идентификатор функции активации
 	Bias    float32   // Нейрон смещения: от 0 до 1
