@@ -9,7 +9,7 @@ import (
 const (
 	DEFRATE float32 = .3      // Default rate
 	MINLOSS float32 = .0001   // Минимальная величина средней квадратичной суммы ошибки при достижении которой обучение прекращается принудительно
-	MAXITER int     = 1000000 // Максимальная количество итреаций по достижению которой обучение прекращается принудительно
+	MAXITER int     = 10000000 // Максимальная количество итреаций по достижению которой обучение прекращается принудительно
 )
 
 // Collection of neural network matrix parameters
@@ -203,7 +203,7 @@ func (m *Matrix) CalcOutputError(data []float32) (loss float32) {
 		m.Layer[m.Index].Error[i] = (data[i] - v) * GetDerivative(v, m.Mode)
 		loss += float32(math.Pow(float64(m.Layer[m.Index].Error[i]), 2))
 	}
-	return loss / float32(m.Layer[m.Index].Size)
+	return loss /*/ float32(m.Layer[m.Index].Size)*/
 }
 
 // Function for calculating the error of neurons in hidden layers

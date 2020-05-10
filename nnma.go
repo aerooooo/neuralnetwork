@@ -27,11 +27,8 @@ func main() {
 	mx.Mode   = nn.TANH
 	mx.Rate   = .3
 	mx.Bias   = 1
-	mx.Limit  = .01
+	mx.Limit  = .001
 	mx.Hidden = []int{11, 7}
-	//isMirror     := true
-	numInputBar  := 3
-	//numOutputBar := 3
 
 	// Считываем данные из файла
 	filename := "nnma/nnma_EURUSD_M60_2-5-8_0_0.dat"
@@ -77,72 +74,87 @@ func main() {
 	}
 	//fmt.Println(dataset[0],len(dataset),cap(dataset))
 	//fmt.Println(dataset[len(dataset) - 1][0],dataset[len(dataset) - 1][1],dataset[len(dataset) - 1][2])
-	//fmt.Println(io.SeekEnd)
 
 	// Обучение
-	var input  []float32
-	//var output []float32
+	var (
+		input []float32
+		data  []float32
+		loss  float32
+		sum   float32 = 0
+		count int
+	)
+	numInputBar  := 5
+	numOutputBar := 3
+	iter := 0
+	num  := 0
+
 	//for epoch := 0; epoch < 4; epoch++ {
-		for i := numInputBar; i <= numInputBar /*+ 1len(dataset)*/; i++ {
-			d := getArray(dataset[i - numInputBar:i])
-			/*d := make([]float32, 0)
-			for _, r := range dataset[i - numInputBar:i] {
-				d = append(d, r...)
-			}*/
-			//fmt.Println(d)
-
-			k := len(d)
-			input = make([]float32, k)
-			for _, v := range d {
-				k--
-				input[k] = v
-			}
+		for i := numInputBar; i <= numInputBar/*len(dataset) - numOutputBar*/; i++ {
+			input = /*reverseArray(*/getInputArray(dataset[i - numInputBar:i])//)
 			fmt.Println(input)
+			data = getDataArray(dataset[i:i + numOutputBar])
+			fmt.Println(data)
 
+			count, loss = mx.Training(input, data)
+			num += count
+			sum += loss
+			iter++
 
+			// Mirror
+			count, loss = mx.Training(getMirror(input, data))
 
-			d = getArray(dataset[i - numInputBar:i])
-			k = len(d)
-			fmt.Println(d)
+			num += count
+			sum += loss
+			iter++
 		}
 	//}
 
-	/*for i, v := range dataset[numInputBar - 1:numInputBar][:] {
-		fmt.Println(i, v)
-	}*/
-
-	// Вывод значений нейросети
-	//mx.Print(0, 0)
-
-	// Initialization
-
-
-
-	//
-	//mx.FillWeight()
-
-	// Обучение
-	/*for i := range dataset {
-		for j, v := range dataset[i] {
-			fmt.Println(j, v)
-		}
-	}*/
-	/*
-	for epoch := 0; epoch < 4; epoch++ {
-	count, loss := mx.Training(input, data)
-	}*/
-
 	// Записываем данные вессов в файл
-	/*err = mx.WriteWeight(filename + ".weight")
+	err = mx.WriteWeight(filename + ".weight")
 	if err != nil {
 		log.Fatal(err)
-	}*/
+	}
+
+	// Вывод значений нейросети
+	mx.Print(num / iter, sum / float32(iter))
 }
 
-func getArray(dataset [][]float32) []float32 {
+// Reverse array
+func reverseArray(dataset []float32) []float32 {
+	k := len(dataset)
+	d := make([]float32, k)
+	for _, v := range dataset {
+		k--
+		d[k] = v
+	}
+	return d
+}
+
+// Возвращает массив входных параметров
+func getInputArray(dataset [][]float32) []float32 {
 	d := make([]float32, 0)
 	for _, r := range dataset {
 		d = append(d, r...)
 	}
 	return d
+}
+
+// Возвращает массив эталонных данных
+func getDataArray(dataset [][]float32) []float32 {
+	d := make([]float32, 0)
+	for _, r := range dataset {
+		d = append(d, r[0])
+	}
+	return d
+}
+
+// Зеркалит данные
+func getMirror(input, data []float32) ([]float32, []float32) {
+	for i := range input {
+		input[i] *= -1
+	}
+	for i := range data {
+		data[i] *= -1
+	}
+	return input, data
 }

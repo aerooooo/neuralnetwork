@@ -17,9 +17,9 @@ func GetActivation(value float32, mode uint8) float32 {
 	case IDENTITY:
 		return value
 	case SIGMOID:
-		return float32(1 / (1 + math.Pow(math.E, float64(-value))))
+		return float32(1 / (1 + math.Exp(float64(-value))))
 	case TANH:
-		value = float32(math.Pow(math.E, float64(2 * value)))
+		value = float32(math.Exp(float64(2 * value)))
 		return (value - 1) / (value + 1)
 	case RELU:
 		switch {
