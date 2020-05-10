@@ -87,7 +87,7 @@ func main() {
 	iter := 0
 	num  := 0
 
-	//for epoch := 0; epoch < 4; epoch++ {
+	for epoch := 0; epoch < 3; epoch++ {
 		for i := numInputBar; i </*= numInputBar*/len(dataset) - numOutputBar; i++ {
 			input = getInputArray(dataset[i - numInputBar:i])
 			//fmt.Println(input)
@@ -100,13 +100,13 @@ func main() {
 			iter++
 
 			// Mirror
-			count, loss = mx.Training(getMirror(input, data))
+			/*count, loss = mx.Training(getMirror(input, data))
 
 			num += count
 			sum += loss
-			iter++
+			iter++*/
 		}
-	//}
+	}
 
 	// Записываем данные вессов в файл
 	err = mx.WriteWeight(filename + ".weight")
