@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"fmt"
 	"io"
 	"log"
 	"os"
@@ -89,11 +88,11 @@ func main() {
 	num  := 0
 
 	//for epoch := 0; epoch < 4; epoch++ {
-		for i := numInputBar; i <= numInputBar/*len(dataset) - numOutputBar*/; i++ {
-			input = /*reverseArray(*/getInputArray(dataset[i - numInputBar:i])//)
-			fmt.Println(input)
+		for i := numInputBar; i </*= numInputBar*/len(dataset) - numOutputBar; i++ {
+			input = getInputArray(dataset[i - numInputBar:i])
+			//fmt.Println(input)
 			data = getDataArray(dataset[i:i + numOutputBar])
-			fmt.Println(data)
+			//fmt.Println(data)
 
 			count, loss = mx.Training(input, data)
 			num += count
@@ -119,22 +118,11 @@ func main() {
 	mx.Print(num / iter, sum / float32(iter))
 }
 
-// Reverse array
-func reverseArray(dataset []float32) []float32 {
-	k := len(dataset)
-	d := make([]float32, k)
-	for _, v := range dataset {
-		k--
-		d[k] = v
-	}
-	return d
-}
-
 // Возвращает массив входных параметров
 func getInputArray(dataset [][]float32) []float32 {
 	d := make([]float32, 0)
-	for _, r := range dataset {
-		d = append(d, r...)
+	for i := len(dataset) - 1; i >= 0; i-- {
+		d = append(d, dataset[i]...)
 	}
 	return d
 }
