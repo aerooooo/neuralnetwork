@@ -11,15 +11,18 @@ const (
 )
 
 // Activation function
-func GetActivation(value float32, mode uint8) float32 {
+func GetActivation(value float64, mode uint8) float64 {
 	switch mode {
 	default: fallthrough
 	case IDENTITY:
 		return value
 	case SIGMOID:
-		return float32(1 / (1 + math.Exp(float64(-value))))
+		return 1 / (1 + math.Exp(-value))
 	case TANH:
-		value = float32(math.Exp(float64(2 * value)))
+		value = math.Exp(2 * value)
+		/*if math.IsNaN(value) {
+
+		}*/
 		return (value - 1) / (value + 1)
 	case RELU:
 		switch {
@@ -37,7 +40,7 @@ func GetActivation(value float32, mode uint8) float32 {
 }
 
 // Derivative activation function
-func GetDerivative(value float32, mode uint8) float32 {
+func GetDerivative(value float64, mode uint8) float64 {
 	switch mode {
 	default: fallthrough
 	case IDENTITY:
@@ -45,7 +48,7 @@ func GetDerivative(value float32, mode uint8) float32 {
 	case SIGMOID:
 		return value * (1 - value)
 	case TANH:
-		return 1 - float32(math.Pow(float64(value), 2))
+		return 1 - math.Pow(value, 2)
 	case RELU:
 		switch {
 		case value <= 0: return 0

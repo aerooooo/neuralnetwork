@@ -32,8 +32,8 @@ func (m *Matrix) ReadWeight(filename string) error {
 			}
 			if len(line) > 0 {
 				for k, v := range strings.Split(line, "\t") {
-					if f, err := strconv.ParseFloat(v, 32); err == nil {
-						m.Synapse[i].Weight[j][k] = float32(f)
+					if f, err := strconv.ParseFloat(v, 64); err == nil {
+						m.Synapse[i].Weight[j][k] = f
 					} else {
 						return err
 					}
@@ -60,7 +60,7 @@ func (m *Matrix) WriteWeight(filename string) error {
 	for i := 0; i < m.Index; i++ {
 		for j := 0; j < m.Synapse[i].Size[0]; j++ {
 			for k := 0; k < m.Synapse[i].Size[1]; k++ {
-				_, err = writer.WriteString(strconv.FormatFloat(float64(m.Synapse[i].Weight[j][k]), 'f', -1, 32)) // Запись строки
+				_, err = writer.WriteString(strconv.FormatFloat(m.Synapse[i].Weight[j][k], 'f', -1, 32)) // Запись строки
 				if k < m.Synapse[i].Size[1] - 1 {
 					_, err = writer.WriteString("\t") // Разделяем значения
 				} else {
@@ -76,7 +76,7 @@ func (m *Matrix) WriteWeight(filename string) error {
 }
 
 // Функция вывода результатов нейросети
-func (m *Matrix) Print(count int, loss float32) {
+func (m *Matrix) Print(count int, loss float64) {
 	var (
 		i int
 		t string

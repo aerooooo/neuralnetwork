@@ -2,8 +2,10 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"io"
 	"log"
+	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -39,7 +41,7 @@ func main() {
 	defer file.Close()
 
 	reader  := bufio.NewReader(file)
-	dataset := make([][]float32, 0)
+	dataset := make([][]float64, 0)
 
 	for i := 0;; {
 		if line, err := reader.ReadString('\n'); err != nil {
@@ -54,16 +56,16 @@ func main() {
 				line = strings.Trim(line,"\r")
 			}
 			if len(line) > 0 {
-				var row []float32
+				var row []float64
 				dataset = append(dataset, row)
 				for _, v := range strings.Split(line, "\t") {
-					if f, err := strconv.ParseFloat(v, 32); err == nil {
-						row = append(row, float32(f))
+					if f, err := strconv.ParseFloat(v, 64); err == nil {
+						row = append(row, f)
 					} else {
 						log.Fatalln(err)
 					}
 				}
-				dataset[i] = make([]float32, len(row))
+				dataset[i] = make([]float64, len(row))
 				copy(dataset[i], row)
 				i++
 			} else {
@@ -71,42 +73,57 @@ func main() {
 			}
 		}
 	}
-	//fmt.Println(dataset[0],len(dataset),cap(dataset))
-	//fmt.Println(dataset[len(dataset) - 1][0],dataset[len(dataset) - 1][1],dataset[len(dataset) - 1][2])
+	//fmt.Println(dataset[0],len(dataset),cap(dataset),dataset[len(dataset) - 1][0],dataset[len(dataset) - 1][1],dataset[len(dataset) - 1][2])
+	//fmt.Printf("%T\n",dataset[len(dataset) - 1][2])
 
 	// Обучение
 	var (
-		input []float32
-		data  []float32
-		loss  float32
-		sum   float32 = 0
-		count int
+		input []float64
+		data  []float64
+		loss  float64
+		//sum   float64 = 0
+		count int = 1
 	)
 	numInputBar  := 5
 	numOutputBar := 3
-	iter := 0
-	num  := 0
+	//iter := 0
+	//num  := 0
 
-	for epoch := 0; epoch < 3; epoch++ {
-		for i := numInputBar; i </*= numInputBar*/len(dataset) - numOutputBar; i++ {
+	//for epoch := 0; epoch < 3; epoch++ {
+		for i := numInputBar; i <=numInputBar/*len(dataset) - numOutputBar*/; i++ {
 			input = getInputArray(dataset[i - numInputBar:i])
 			//fmt.Println(input)
 			data = getDataArray(dataset[i:i + numOutputBar])
 			//fmt.Println(data)
 
-			count, loss = mx.Training(input, data)
+			if !mx.IsInit {
+				mx.IsInit = mx.Initializing(input, data)
+			} else {
+				copy(mx.Layer[0].Neuron, input)
+				//fmt.Println(mx.Layer[0].Neuron)
+			}
+			for j := 0; j < 1; j++ {
+				mx.CalcNeuron()
+				loss = mx.CalcOutputError(data)
+				mx.CalcError()
+				mx.UpdateWeight()
+				count = j
+				//fmt.Println(loss)
+			}
+
+
+			/*count, loss = mx.Training(input, data)
 			num += count
 			sum += loss
-			iter++
-
-			// Mirror
+			iter++*/
 			/*count, loss = mx.Training(getMirror(input, data))
-
 			num += count
 			sum += loss
 			iter++*/
 		}
-	}
+	//}
+	//fmt.Println(data)
+	//fmt.Println(-0.0006 - (0.18953952)) //-0.19013952
 
 	// Записываем данные вессов в файл
 	err = mx.WriteWeight(filename + ".weight")
@@ -115,12 +132,17 @@ func main() {
 	}
 
 	// Вывод значений нейросети
-	mx.Print(num / iter, sum / float32(iter))
+	//mx.Print(num / iter, sum / float32(iter))
+	mx.Print(count, loss)
+
+	fmt.Println(math.Exp(2 * -157.03015))
+	fmt.Println(float32(math.Exp(2 * 157.03015)))
+	fmt.Println(1 / math.Exp(2 * 157.03015))
 }
 
 // Возвращает массив входных параметров
-func getInputArray(dataset [][]float32) []float32 {
-	d := make([]float32, 0)
+func getInputArray(dataset [][]float64) []float64 {
+	d := make([]float64, 0)
 	for i := len(dataset) - 1; i >= 0; i-- {
 		d = append(d, dataset[i]...)
 	}
@@ -128,8 +150,8 @@ func getInputArray(dataset [][]float32) []float32 {
 }
 
 // Возвращает массив эталонных данных
-func getDataArray(dataset [][]float32) []float32 {
-	d := make([]float32, 0)
+func getDataArray(dataset [][]float64) []float64 {
+	d := make([]float64, 0)
 	for _, r := range dataset {
 		d = append(d, r[0])
 	}
@@ -137,7 +159,7 @@ func getDataArray(dataset [][]float32) []float32 {
 }
 
 // Зеркалит данные
-func getMirror(input, data []float32) ([]float32, []float32) {
+func getMirror(input, data []float64) ([]float64, []float64) {
 	for i := range input {
 		input[i] *= -1
 	}

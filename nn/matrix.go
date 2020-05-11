@@ -4,5 +4,5 @@ type NN interface {
 }
 
 type Checker interface {
-	Checking() float32
+	Checking() float64
 }
