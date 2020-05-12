@@ -2,10 +2,8 @@ package main
 
 import (
 	"bufio"
-	"fmt"
 	"io"
 	"log"
-	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -28,7 +26,7 @@ func main() {
 	mx.Mode   = nn.TANH
 	mx.Rate   = .3
 	mx.Bias   = 1
-	mx.Limit  = .001
+	mx.Limit  = .00001
 	mx.Hidden = []int{11, 7}
 
 	// Считываем данные из файла
@@ -60,7 +58,7 @@ func main() {
 				dataset = append(dataset, row)
 				for _, v := range strings.Split(line, "\t") {
 					if f, err := strconv.ParseFloat(v, 64); err == nil {
-						row = append(row, f)
+						row = append(row, f / 1000) // 1000 - Коэфициент масштабирования данных, приводящих к промежутку от -1 до 1
 					} else {
 						log.Fatalln(err)
 					}
@@ -74,56 +72,53 @@ func main() {
 		}
 	}
 	//fmt.Println(dataset[0],len(dataset),cap(dataset),dataset[len(dataset) - 1][0],dataset[len(dataset) - 1][1],dataset[len(dataset) - 1][2])
-	//fmt.Printf("%T\n",dataset[len(dataset) - 1][2])
 
 	// Обучение
 	var (
-		input []float64
-		data  []float64
-		loss  float64
-		//sum   float64 = 0
-		count int = 1
+		input	[]float64
+		target	[]float64
+		loss	float64
 	)
 	numInputBar  := 5
 	numOutputBar := 3
+	count  := 1
 	//iter := 0
 	//num  := 0
+	//sum  := 0.
 
-	//for epoch := 0; epoch < 3; epoch++ {
-		for i := numInputBar; i <=numInputBar/*len(dataset) - numOutputBar*/; i++ {
+	for epoch := 0; epoch < 3; epoch++ {
+		for i := numInputBar; i <=/*numInputBar*/len(dataset) - numOutputBar; i++ {
 			input = getInputArray(dataset[i - numInputBar:i])
 			//fmt.Println(input)
-			data = getDataArray(dataset[i:i + numOutputBar])
-			//fmt.Println(data)
+			target = getDataArray(dataset[i:i + numOutputBar])
+			//fmt.Println(target)
 
-			if !mx.IsInit {
-				mx.IsInit = mx.Initializing(input, data)
+			/*if !mx.IsInit {
+				mx.IsInit = mx.Initializing(input, target)
 			} else {
 				copy(mx.Layer[0].Neuron, input)
 				//fmt.Println(mx.Layer[0].Neuron)
 			}
 			for j := 0; j < 1; j++ {
 				mx.CalcNeuron()
-				loss = mx.CalcOutputError(data)
+				loss = mx.CalcOutputError(target)
 				mx.CalcError()
 				mx.UpdateWeight()
 				count = j
 				//fmt.Println(loss)
-			}
+			}*/
 
 
-			/*count, loss = mx.Training(input, data)
-			num += count
+			count, loss = mx.Training(input, target)
+			/*num += count
 			sum += loss
 			iter++*/
-			/*count, loss = mx.Training(getMirror(input, data))
+			/*count, loss = mx.Training(getMirror(input, target))
 			num += count
 			sum += loss
 			iter++*/
 		}
-	//}
-	//fmt.Println(data)
-	//fmt.Println(-0.0006 - (0.18953952)) //-0.19013952
+	}
 
 	// Записываем данные вессов в файл
 	err = mx.WriteWeight(filename + ".weight")
@@ -134,10 +129,6 @@ func main() {
 	// Вывод значений нейросети
 	//mx.Print(num / iter, sum / float32(iter))
 	mx.Print(count, loss)
-
-	fmt.Println(math.Exp(2 * -157.03015))
-	fmt.Println(float32(math.Exp(2 * 157.03015)))
-	fmt.Println(1 / math.Exp(2 * 157.03015))
 }
 
 // Возвращает массив входных параметров
@@ -159,12 +150,12 @@ func getDataArray(dataset [][]float64) []float64 {
 }
 
 // Зеркалит данные
-func getMirror(input, data []float64) ([]float64, []float64) {
+func getMirror(input, target []float64) ([]float64, []float64) {
 	for i := range input {
 		input[i] *= -1
 	}
-	for i := range data {
-		data[i] *= -1
+	for i := range target {
+		target[i] *= -1
 	}
-	return input, data
+	return input, target
 }

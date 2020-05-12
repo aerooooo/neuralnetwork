@@ -60,7 +60,7 @@ func (m *Matrix) WriteWeight(filename string) error {
 	for i := 0; i < m.Index; i++ {
 		for j := 0; j < m.Synapse[i].Size[0]; j++ {
 			for k := 0; k < m.Synapse[i].Size[1]; k++ {
-				_, err = writer.WriteString(strconv.FormatFloat(m.Synapse[i].Weight[j][k], 'f', -1, 32)) // Запись строки
+				_, err = writer.WriteString(strconv.FormatFloat(m.Synapse[i].Weight[j][k], 'f', -1, 64)) // Запись строки
 				if k < m.Synapse[i].Size[1] - 1 {
 					_, err = writer.WriteString("\t") // Разделяем значения
 				} else {
