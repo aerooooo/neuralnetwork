@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"time"
 
 	"github.com/teratron/neuralnetwork/nn"
 )
@@ -10,10 +12,12 @@ func main() {
 	var (
 		count int
 		loss  float64
-		input  = []float64{1.2, 6.3} // Входные параметры
-		target = []float64{6.3, 3.2} // Обучающий набор с которым будет сравниваться выходной слой
+		input  = []float64{.2, .63}  // Входные параметры
+		target = []float64{.63, .32} // Обучающий набор с которым будет сравниваться выходной слой
 		hidden = []int{5, 4}         // Массив количеств нейронов в каждом скрытом слое
 	)
+
+	start := time.Now()
 
 	// Инициализация нейросети
 	var matrix nn.Matrix
@@ -36,4 +40,9 @@ func main() {
 
 	// Вывод значений нейросети
 	matrix.Print(count, loss)
+
+	// Elapsed time
+	t := time.Now()
+	elapsed := t.Sub(start)
+	fmt.Printf("Elapsed time: %v\n", elapsed)
 }

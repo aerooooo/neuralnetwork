@@ -2,11 +2,13 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"io"
 	"log"
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/teratron/neuralnetwork/nn"
 )
@@ -21,10 +23,12 @@ func main() {
 		Hidden:	[]int{5, 4},
 	}*/
 
+	start := time.Now()
+
 	//mx := new(nn.Matrix)
 	var mx nn.Matrix
 	mx.Mode   = nn.TANH
-	mx.Rate   = .3
+	mx.Rate   = .1
 	mx.Bias   = 1
 	mx.Limit  = .00001
 	mx.Hidden = []int{11, 7}
@@ -82,37 +86,21 @@ func main() {
 	numInputBar  := 5
 	numOutputBar := 3
 	count  := 1
-	//iter := 0
-	//num  := 0
-	//sum  := 0.
+	iter := 0
+	num  := 0
+	sum  := 0.
 
-	for epoch := 0; epoch < 3; epoch++ {
+	for epoch := 0; epoch < 4; epoch++ {
 		for i := numInputBar; i <=/*numInputBar*/len(dataset) - numOutputBar; i++ {
 			input = getInputArray(dataset[i - numInputBar:i])
 			//fmt.Println(input)
 			target = getDataArray(dataset[i:i + numOutputBar])
 			//fmt.Println(target)
 
-			/*if !mx.IsInit {
-				mx.IsInit = mx.Initializing(input, target)
-			} else {
-				copy(mx.Layer[0].Neuron, input)
-				//fmt.Println(mx.Layer[0].Neuron)
-			}
-			for j := 0; j < 1; j++ {
-				mx.CalcNeuron()
-				loss = mx.CalcOutputError(target)
-				mx.CalcError()
-				mx.UpdateWeight()
-				count = j
-				//fmt.Println(loss)
-			}*/
-
-
 			count, loss = mx.Training(input, target)
-			/*num += count
+			num += count
 			sum += loss
-			iter++*/
+			iter++
 			/*count, loss = mx.Training(getMirror(input, target))
 			num += count
 			sum += loss
@@ -129,6 +117,11 @@ func main() {
 	// Вывод значений нейросети
 	//mx.Print(num / iter, sum / float32(iter))
 	mx.Print(count, loss)
+
+	// Elapsed time
+	t := time.Now()
+	elapsed := t.Sub(start)
+	fmt.Printf("Elapsed time: %v\n", elapsed)
 }
 
 // Возвращает массив входных параметров
