@@ -22,19 +22,26 @@ func main() {
 		Limit:	.01,
 		Hidden:	[]int{5, 4},
 	}*/
-
-	start := time.Now()
+	var (
+		input	[]float64
+		target	[]float64
+		loss	float64
+	)
+	numInputBar  := 10
+	numOutputBar := 3
+	dataScale    := 1000.  // Коэфициент масштабирования данных, приводящих к промежутку от -1 до 1
+	start        := time.Now()
 
 	//mx := new(nn.Matrix)
 	var mx nn.Matrix
 	mx.Mode   = nn.TANH
-	mx.Rate   = .1
+	mx.Rate   = .3
 	mx.Bias   = 1
-	mx.Limit  = .00001
-	mx.Hidden = []int{11, 7}
+	mx.Limit  = .001
+	mx.Hidden = []int{20, 20, 10}
 
 	// Считываем данные из файла
-	filename := "nnma/nnma_EURUSD_M60_2-5-8_0_0.dat"
+	filename := "nnma/nnma_EURUSD_M60_1-5_0_0.dat"
 
 	file, err := os.Open(filename)
 	if err != nil {
@@ -62,7 +69,7 @@ func main() {
 				dataset = append(dataset, row)
 				for _, v := range strings.Split(line, "\t") {
 					if f, err := strconv.ParseFloat(v, 64); err == nil {
-						row = append(row, f / 1000) // 1000 - Коэфициент масштабирования данных, приводящих к промежутку от -1 до 1
+						row = append(row, f / dataScale)
 					} else {
 						log.Fatalln(err)
 					}
@@ -75,23 +82,16 @@ func main() {
 			}
 		}
 	}
-	//fmt.Println(dataset[0],len(dataset),cap(dataset),dataset[len(dataset) - 1][0],dataset[len(dataset) - 1][1],dataset[len(dataset) - 1][2])
+	//fmt.Println(len(dataset), cap(dataset), dataset[0], dataset[len(dataset) - 1][0], dataset[len(dataset) - 1][1]/*,dataset[len(dataset) - 1][2]*/)
 
 	// Обучение
-	var (
-		input	[]float64
-		target	[]float64
-		loss	float64
-	)
-	numInputBar  := 5
-	numOutputBar := 3
 	count  := 1
 	iter := 0
 	num  := 0
 	sum  := 0.
 
-	for epoch := 0; epoch < 4; epoch++ {
-		for i := numInputBar; i <=/*numInputBar*/len(dataset) - numOutputBar; i++ {
+	for epoch := 0; epoch < 10000; epoch++ {
+		for i := /*numInputBar*/len(dataset) - numOutputBar - 200; i <=len(dataset) - numOutputBar/*numInputBar*/; i += 1 {
 			input = getInputArray(dataset[i - numInputBar:i])
 			//fmt.Println(input)
 			target = getDataArray(dataset[i:i + numOutputBar])
@@ -115,8 +115,8 @@ func main() {
 	}
 
 	// Вывод значений нейросети
-	//mx.Print(num / iter, sum / float32(iter))
-	mx.Print(count, loss)
+	mx.Print(num / iter, sum / float64(iter))
+	//mx.Print(count, loss)
 
 	// Elapsed time
 	t := time.Now()

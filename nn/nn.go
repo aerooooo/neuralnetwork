@@ -8,7 +8,7 @@ import (
 
 const (
 	DEFRATE float64 = .3      // Default rate
-	MINLOSS float64 = .00001   // Минимальная величина средней квадратичной суммы ошибки при достижении которой обучение прекращается принудительно
+	MINLOSS float64 = .000001 // Минимальная величина средней квадратичной суммы ошибки при достижении которой обучение прекращается принудительно
 	MAXITER int     = 1000000 // Максимальная количество итреаций по достижению которой обучение прекращается принудительно
 
 	MSE		uint8 = 0	// Mean Squared Error
@@ -132,8 +132,31 @@ func (m *Matrix) Initializing(input, target []float64) bool {
 	return true
 }
 
+//
+func forwardPropagation() {
+}
+
+//
+func backwardPropagation() {
+}
+
 // Training
 func (m *Matrix) Training(input, target []float64) (count int, loss float64) {
+	if !m.IsInit {
+		m.IsInit = m.Initializing(input, target)
+	} else {
+		copy(m.Layer[0].Neuron, input)
+	}
+	m.CalcNeuron()
+	loss = m.CalcOutputError(target)
+	m.CalcError()
+	m.UpdateWeight()
+
+	return 1, loss
+}
+
+// Training
+/*func (m *Matrix) Training(input, target []float64) (count int, loss float64) {
 	if !m.IsInit {
 		m.IsInit = m.Initializing(input, target)
 	} else {
@@ -150,7 +173,7 @@ func (m *Matrix) Training(input, target []float64) (count int, loss float64) {
 		count++
 	}
 	return count, loss
-}
+}*/
 
 // The function fills all weights with random numbers from -0.5 to 0.5
 func (m *Matrix) FillWeight() {
@@ -204,10 +227,10 @@ func (m *Matrix) CalcNeuron() {
 func (m *Matrix) CalcOutputError(target []float64) (loss float64) {
 	loss = 0
 	for i, v := range m.Layer[m.Index].Neuron {
-		m.Layer[m.Index].Error[i] = target[i] - v
+		m.Layer[m.Index].Error[i] = (target[i] - v) * GetDerivative(v, m.Mode)
 		//fmt.Println(data[i], v, m.Layer[m.Index].Error[i])
 		loss += math.Pow(m.Layer[m.Index].Error[i], 2)
-		m.Layer[m.Index].Error[i] *= GetDerivative(v, m.Mode)
+		//m.Layer[m.Index].Error[i] *= GetDerivative(v, m.Mode)
 	}
 	//fmt.Println(loss)
 	return loss / float64(m.Layer[m.Index].Size)
