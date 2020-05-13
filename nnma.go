@@ -91,10 +91,16 @@ func main() {
 	sum  := 0.
 
 	for epoch := 0; epoch < 10000; epoch++ {
-		for i := /*numInputBar*/len(dataset) - numOutputBar - 200; i <=len(dataset) - numOutputBar/*numInputBar*/; i += 1 {
+		for i := /*numInputBar*/len(dataset) - numOutputBar - 1; i <=len(dataset) - numOutputBar/*numInputBar*/; i += 1 {
 			input = getInputArray(dataset[i - numInputBar:i])
 			//fmt.Println(input)
 			target = getDataArray(dataset[i:i + numOutputBar])
+			//fmt.Println(target)
+
+			// Если только знак
+			input = getSignArray(input)
+			//fmt.Println(input)
+			target = getSignArray(target)
 			//fmt.Println(target)
 
 			count, loss = mx.Training(input, target)
@@ -131,6 +137,21 @@ func getInputArray(dataset [][]float64) []float64 {
 		d = append(d, dataset[i]...)
 	}
 	return d
+}
+
+//
+func getSignArray(dataset []float64) []float64 {
+	for i, v := range dataset {
+		switch {
+		case v < 0:
+			dataset[i] = -1
+		case v > 0:
+			dataset[i] = 1
+		default:
+			dataset[i] = 0
+		}
+	}
+	return dataset
 }
 
 // Возвращает массив эталонных данных
