@@ -26,6 +26,7 @@ func main() {
 		input	[]float64
 		target	[]float64
 		loss	float64
+		count	int
 	)
 	numInputBar  := 10
 	numOutputBar := 3
@@ -85,13 +86,12 @@ func main() {
 	//fmt.Println(len(dataset), cap(dataset), dataset[0], dataset[len(dataset) - 1][0], dataset[len(dataset) - 1][1]/*,dataset[len(dataset) - 1][2]*/)
 
 	// Обучение
-	count  := 1
-	iter := 0
+	/*iter := 0
 	num  := 0
-	sum  := 0.
+	sum  := 0.*/
 
-	for epoch := 0; epoch < 10000; epoch++ {
-		for i := /*numInputBar*/len(dataset) - numOutputBar - 1; i <=len(dataset) - numOutputBar/*numInputBar*/; i += 1 {
+	for epoch := 0; epoch < 1; epoch++ {
+		for i := numInputBar/*len(dataset) - numOutputBar - 20*/; i <=len(dataset) - numOutputBar/*numInputBar*/; i += 1 {
 			input = getInputArray(dataset[i - numInputBar:i])
 			//fmt.Println(input)
 			target = getDataArray(dataset[i:i + numOutputBar])
@@ -103,14 +103,21 @@ func main() {
 			target = getSignArray(target)
 			//fmt.Println(target)
 
-			count, loss = mx.Training(input, target)
-			num += count
-			sum += loss
-			iter++
-			/*count, loss = mx.Training(getMirror(input, target))
-			num += count
-			sum += loss
-			iter++*/
+			count = 1
+			for count <= nn.MAXITER {
+				loss, _ = mx.Training(input, target)
+				if loss <= mx.Limit || loss <= nn.MINLOSS {
+					break
+				}
+				/*num += count
+				sum += loss
+				iter++*/
+				count++
+				/*count, loss = mx.Training(getMirror(input, target))
+				num += count
+				sum += loss
+				iter++*/
+			}
 		}
 	}
 
@@ -121,8 +128,8 @@ func main() {
 	}
 
 	// Вывод значений нейросети
-	mx.Print(num / iter, sum / float64(iter))
-	//mx.Print(count, loss)
+	//mx.Print(num / iter, sum / float64(iter))
+	mx.Print(count, loss)
 
 	// Elapsed time
 	t := time.Now()

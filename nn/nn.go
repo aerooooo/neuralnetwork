@@ -141,7 +141,7 @@ func backwardPropagation() {
 }
 
 // Training
-func (m *Matrix) Training(input, target []float64) (count int, loss float64) {
+func (m *Matrix) Training(input, target []float64) (loss float64, count int) {
 	if !m.IsInit {
 		m.IsInit = m.Initializing(input, target)
 	} else {
@@ -152,11 +152,11 @@ func (m *Matrix) Training(input, target []float64) (count int, loss float64) {
 	m.CalcError()
 	m.UpdateWeight()
 
-	return 1, loss
+	return loss, 1
 }
 
 // Training
-/*func (m *Matrix) Training(input, target []float64) (count int, loss float64) {
+/*func (m *Matrix) Training(input, target []float64) (loss float64, count int) {
 	if !m.IsInit {
 		m.IsInit = m.Initializing(input, target)
 	} else {
@@ -172,7 +172,7 @@ func (m *Matrix) Training(input, target []float64) (count int, loss float64) {
 		m.UpdateWeight()
 		count++
 	}
-	return count, loss
+	return loss, count
 }*/
 
 // The function fills all weights with random numbers from -0.5 to 0.5
