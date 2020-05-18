@@ -204,47 +204,47 @@ func (m *Matrix) CalcNeuron() {
 	for i := 1; i < m.Size; i++ {
 		n := i - 1
 		for j := 0; j < m.Layer[i].Size; j++ {
-			/*go m.GetNeuron(i, j, k)*/
 			sum := 0.
 			for k, v := range m.Layer[n].Neuron {
 				sum += v * m.Synapse[n].Weight[k][j]
 			}
 			m.Layer[i].Neuron[j] = GetActivation(sum, m.Mode)
-			//fmt.Println(sum,m.Layer[i].Neuron[j])
 		}
 	}
 }
-
-/*func (m *Matrix) GetNeuron(x, y, z int) {
-	var sum float32 = 0
-	for i, v := range m.Layer[z].Neuron {
-		sum += v * m.Synapse[z].Weight[i][y]
-	}
-	m.Layer[x].Neuron[y] = GetActivation(sum, m.Mode)
-}*/
 
 // Function for calculating the error of the output neuron
 func (m *Matrix) CalcOutputError(target []float64) (loss float64) {
 	loss = 0
 	for i, v := range m.Layer[m.Index].Neuron {
-		m.Layer[m.Index].Error[i] = (target[i] - v) * GetDerivative(v, m.Mode)
-		//fmt.Println(data[i], v, m.Layer[m.Index].Error[i])
+		m.Layer[m.Index].Error[i] = target[i] - v
 		loss += math.Pow(m.Layer[m.Index].Error[i], 2)
-		//m.Layer[m.Index].Error[i] *= GetDerivative(v, m.Mode)
+		m.Layer[m.Index].Error[i] *= GetDerivative(v, m.Mode)
 	}
-	//fmt.Println(loss)
 	return loss / float64(m.Layer[m.Index].Size)
+}
+
+func getTotalError(value float64, mode uint8) float64 {
+	switch mode {
+	default: fallthrough
+	case MSE:
+		return 1
+	case RMSE:
+		return 2
+	case ARCTAN:
+		return 3
+	}
 }
 
 // Function for calculating the error of neurons in hidden layers
 func (m *Matrix) CalcError() {
-	for i := m.Size - 2; i > 0; i-- {
+	for i := m.Index - 1; i > 0; i-- {
 		for j := 0; j < m.Layer[i].Size; j++ {
-			sum := 0.
-			for k, v := range m.Layer[i+1].Error {
-				sum += v * m.Synapse[i].Weight[j][k]
+			m.Layer[i].Error[j] = 0.
+			for k, v := range m.Layer[i + 1].Error {
+				m.Layer[i].Error[j] += v * m.Synapse[i].Weight[j][k]
 			}
-			m.Layer[i].Error[j] = sum * GetDerivative(m.Layer[i].Neuron[j], m.Mode)
+			m.Layer[i].Error[j] *= GetDerivative(m.Layer[i].Neuron[j], m.Mode)
 		}
 	}
 }
@@ -255,7 +255,10 @@ func (m *Matrix) UpdateWeight() {
 		n := i - 1
 		for j, v := range m.Layer[i].Error {
 			for k, p := range m.Layer[n].Neuron {
-				m.Synapse[n].Weight[k][j] += m.Rate * v * p /** GetDerivative(m.Layer[i].Neuron[j], m.Mode)*/
+				m.Synapse[n].Weight[k][j] += v * p * m.Rate
+				/*if math.Abs(m.Synapse[n].Weight[k][j]) > 1 {
+					fmt.Println(m.Synapse[n].Weight[k][j], v, p)
+				}*/
 			}
 		}
 	}

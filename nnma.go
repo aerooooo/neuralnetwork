@@ -90,25 +90,25 @@ func main() {
 	num  := 0
 	sum  := 0.*/
 
-	for epoch := 0; epoch < 1; epoch++ {
-		for i := numInputBar/*len(dataset) - numOutputBar - 20*/; i <=len(dataset) - numOutputBar/*numInputBar*/; i += 1 {
+	for epoch := 0; epoch < 4; epoch++ {
+		for i := /*numInputBar*/len(dataset) - numOutputBar - 10; i <=len(dataset) - numOutputBar/*numInputBar*/; i += 1 {
 			input = getInputArray(dataset[i - numInputBar:i])
 			//fmt.Println(input)
 			target = getDataArray(dataset[i:i + numOutputBar])
 			//fmt.Println(target)
 
 			// Если только знак
-			input = getSignArray(input)
+			//input = getSignArray(input)
 			//fmt.Println(input)
-			target = getSignArray(target)
+			//target = getSignArray(target)
 			//fmt.Println(target)
 
 			count = 1
-			for count <= nn.MAXITER {
+			for count < 100 /*nn.MAXITER*/ {
 				loss, _ = mx.Training(input, target)
-				if loss <= mx.Limit || loss <= nn.MINLOSS {
+				/*if loss <= mx.Limit || loss <= nn.MINLOSS {
 					break
-				}
+				}*/
 				/*num += count
 				sum += loss
 				iter++*/
@@ -134,7 +134,16 @@ func main() {
 	// Elapsed time
 	t := time.Now()
 	elapsed := t.Sub(start)
-	fmt.Printf("Elapsed time: %v\n", elapsed)
+	defer fmt.Printf("Elapsed time: %v\n", elapsed)
+
+
+
+	/*fmt.Println(nn.GetActivation(1.13, nn.SIGMOID))
+	fmt.Println(nn.GetDerivative(nn.GetActivation(1.13, nn.SIGMOID), nn.SIGMOID) * -(-0.25))
+
+	fmt.Println(nn.GetActivation(-0.53, nn.SIGMOID))
+	fmt.Println(nn.GetDerivative(nn.GetActivation(-0.53, nn.SIGMOID), nn.SIGMOID) * -0.22 * 0.045)*/
+
 }
 
 // Возвращает массив входных параметров
