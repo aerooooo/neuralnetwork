@@ -38,8 +38,8 @@ func main() {
 	mx.Mode   = nn.TANH
 	mx.Rate   = .3
 	mx.Bias   = 1
-	mx.Limit  = .000001
-	mx.Hidden = []int{20, 20, 10}
+	mx.Limit  = 0 //.000001
+	mx.Hidden = []int{21, 21, 11}
 
 	// Считываем данные из файла
 	filename := "nnma/nnma_EURUSD_M60_1-5_0_0.dat"
@@ -105,9 +105,7 @@ func main() {
 
 			count = 1
 			for count < 1000/*nn.MAXITER*/ {
-				loss, _ = mx.Training(input, target)
-				//if loss <= mx.Limit || loss <= nn.MINLOSS {
-				if loss <= 0 || loss <= nn.MINLOSS {
+				if loss, _ = mx.Training(input, target); loss <= mx.Limit || loss <= nn.MINLOSS {
 					break
 				}
 				/*num += count
