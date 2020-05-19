@@ -28,8 +28,8 @@ func main() {
 		loss	float64
 		count	int
 	)
-	numInputBar  := 10
-	numOutputBar := 3
+	numInputBar  := 7
+	numOutputBar := 2
 	dataScale    := 1000.  // Коэфициент масштабирования данных, приводящих к промежутку от -1 до 1
 	start        := time.Now()
 
@@ -38,7 +38,7 @@ func main() {
 	mx.Mode   = nn.TANH
 	mx.Rate   = .3
 	mx.Bias   = 1
-	mx.Limit  = .001
+	mx.Limit  = .000001
 	mx.Hidden = []int{20, 20, 10}
 
 	// Считываем данные из файла
@@ -90,8 +90,8 @@ func main() {
 	num  := 0
 	sum  := 0.*/
 
-	for epoch := 0; epoch < 4; epoch++ {
-		for i := /*numInputBar*/len(dataset) - numOutputBar - 10; i <=len(dataset) - numOutputBar/*numInputBar*/; i += 1 {
+	for epoch := 0; epoch < 100; epoch++ {
+		for i := /*numInputBar*/len(dataset) - numOutputBar - 10; i <= len(dataset) - numOutputBar; i += 1 {
 			input = getInputArray(dataset[i - numInputBar:i])
 			//fmt.Println(input)
 			target = getDataArray(dataset[i:i + numOutputBar])
@@ -104,11 +104,12 @@ func main() {
 			//fmt.Println(target)
 
 			count = 1
-			for count < 100 /*nn.MAXITER*/ {
+			for count < 1000/*nn.MAXITER*/ {
 				loss, _ = mx.Training(input, target)
-				/*if loss <= mx.Limit || loss <= nn.MINLOSS {
+				//if loss <= mx.Limit || loss <= nn.MINLOSS {
+				if loss <= 0 || loss <= nn.MINLOSS {
 					break
-				}*/
+				}
 				/*num += count
 				sum += loss
 				iter++*/

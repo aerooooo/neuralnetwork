@@ -7,9 +7,9 @@ import (
 )
 
 const (
-	DEFRATE float64 = .3      // Default rate
-	MINLOSS float64 = .000001 // Минимальная величина средней квадратичной суммы ошибки при достижении которой обучение прекращается принудительно
-	MAXITER int     = 1000000 // Максимальная количество итреаций по достижению которой обучение прекращается принудительно
+	DEFRATE float64 = .3	// Default rate
+	MINLOSS float64 = 1e-33	// Минимальная величина средней квадратичной суммы ошибки при достижении которой обучение прекращается принудительно
+	MAXITER int     = 1e+06	// Максимальная количество итреаций по достижению которой обучение прекращается принудительно
 
 	MSE		uint8 = 0	// Mean Squared Error
 	RMSE	uint8 = 1	// Root Mean Squared Error
@@ -256,9 +256,6 @@ func (m *Matrix) UpdateWeight() {
 		for j, v := range m.Layer[i].Error {
 			for k, p := range m.Layer[n].Neuron {
 				m.Synapse[n].Weight[k][j] += v * p * m.Rate
-				/*if math.Abs(m.Synapse[n].Weight[k][j]) > 1 {
-					fmt.Println(m.Synapse[n].Weight[k][j], v, p)
-				}*/
 			}
 		}
 	}
