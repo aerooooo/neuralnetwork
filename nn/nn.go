@@ -18,10 +18,11 @@ const (
 
 // Collection of neural network matrix parameters
 type Matrix struct {
-	IsInit  bool       // Флаг инициализации матрицы
+	isInit  bool       // Флаг инициализации матрицы
 	Size    int        // Количество слоёв в нейросети (Input + Hidden... + Output)
 	Index   int        // Индекс выходного (последнего) слоя нейросети
 	Mode    uint8      // Идентификатор функции активации
+	ModeError    uint8
 	Bias    float64    // Нейрон смещения: от 0 до 1
 	Rate    float64    // Коэффициент обучения, от 0 до 1
 	Limit   float64    // Минимальный (достаточный) уровень средней квадратичной суммы ошибки при обучения
@@ -57,7 +58,7 @@ func (m *Matrix) InitMatrix(mode uint8, bias, rate, limit FloatType, input, targ
 	m.Rate   = rate.Checking()
 	m.Limit  = limit.Checking()
 	m.Hidden = hidden
-	m.IsInit = m.Initializing(input, target)
+	m.isInit = m.Initializing(input, target)
 }
 
 func (f FloatType) Checking() float64 {
@@ -142,13 +143,13 @@ func backwardPropagation() {
 
 // Training
 func (m *Matrix) Training(input, target []float64) (loss float64, count int) {
-	if !m.IsInit {
-		m.IsInit = m.Initializing(input, target)
+	if !m.isInit {
+		m.isInit = m.Initializing(input, target)
 	} else {
 		copy(m.Layer[0].Neuron, input)
 	}
 	m.CalcNeuron()
-	loss = m.CalcOutputError(target)
+	loss = m.CalcOutputError(target, MSE)
 	m.CalcError()
 	m.UpdateWeight()
 
@@ -165,7 +166,7 @@ func (m *Matrix) Training(input, target []float64) (loss float64, count int) {
 	count = 1
 	for count <= MAXITER {
 		m.CalcNeuron()
-		if loss = m.CalcOutputError(target); loss <= m.Limit || loss <= MINLOSS {
+		if loss = m.CalcOutputError(target, MSE); loss <= m.Limit || loss <= MINLOSS {
 			break
 		}
 		m.CalcError()
@@ -214,25 +215,26 @@ func (m *Matrix) CalcNeuron() {
 }
 
 // Function for calculating the error of the output neuron
-func (m *Matrix) CalcOutputError(target []float64) (loss float64) {
+func (m *Matrix) CalcOutputError(target []float64, modeError uint8) (loss float64) {
 	loss = 0
 	for i, v := range m.Layer[m.Index].Neuron {
 		m.Layer[m.Index].Error[i] = target[i] - v
-		loss += math.Pow(m.Layer[m.Index].Error[i], 2)
+		switch modeError {
+		default: fallthrough
+		case MSE, RMSE:
+			loss += math.Pow(m.Layer[m.Index].Error[i], 2)
+		case ARCTAN:
+			loss += math.Pow(math.Atan(m.Layer[m.Index].Error[i]), 2)
+		}
 		m.Layer[m.Index].Error[i] *= GetDerivative(v, m.Mode)
 	}
-	return loss / float64(m.Layer[m.Index].Size)
-}
-
-func getTotalError(value float64, mode uint8) float64 {
-	switch mode {
+	loss /= float64(m.Layer[m.Index].Size)
+	switch modeError {
 	default: fallthrough
-	case MSE:
-		return 1
+	case MSE, ARCTAN:
+		return loss
 	case RMSE:
-		return 2
-	case ARCTAN:
-		return 3
+		return math.Sqrt(loss)
 	}
 }
 

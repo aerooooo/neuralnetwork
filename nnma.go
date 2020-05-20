@@ -38,11 +38,11 @@ func main() {
 	mx.Mode   = nn.TANH
 	mx.Rate   = .3
 	mx.Bias   = 1
-	mx.Limit  = 0 //.000001
+	mx.Limit  = 0//.0000001
 	mx.Hidden = []int{21, 21, 11}
 
 	// Считываем данные из файла
-	filename := "nnma/nnma_EURUSD_M60_1-5_0_0.dat"
+	filename := "nnma/nnma_EURUSD_M60_1-3-5_0_0.dat"
 
 	file, err := os.Open(filename)
 	if err != nil {
@@ -90,8 +90,10 @@ func main() {
 	num  := 0
 	sum  := 0.*/
 
-	for epoch := 0; epoch < 100; epoch++ {
-		for i := /*numInputBar*/len(dataset) - numOutputBar - 10; i <= len(dataset) - numOutputBar; i += 1 {
+	for epoch := 1; epoch <= 1; epoch++ {
+		startEpoch := time.Now()
+		for i := /*numInputBar*/len(dataset) - numOutputBar - 0; i <= len(dataset) - numOutputBar; i++ {
+			//startBar := time.Now()
 			input = getInputArray(dataset[i - numInputBar:i])
 			//fmt.Println(input)
 			target = getDataArray(dataset[i:i + numOutputBar])
@@ -104,7 +106,7 @@ func main() {
 			//fmt.Println(target)
 
 			count = 1
-			for count < 1000/*nn.MAXITER*/ {
+			for count <= 1/*nn.MAXITER*/ {
 				if loss, _ = mx.Training(input, target); loss <= mx.Limit || loss <= nn.MINLOSS {
 					break
 				}
@@ -112,12 +114,23 @@ func main() {
 				sum += loss
 				iter++*/
 				count++
-				/*count, loss = mx.Training(getMirror(input, target))
-				num += count
-				sum += loss
-				iter++*/
+				//fmt.Printf("		Loss: %v\n", loss)
 			}
+			//endBar := time.Now()
+			//fmt.Printf("	Bar: %v, Elapsed time: %v, Count: %v\n", i, endBar.Sub(startBar), count)
+
+			// Mirror
+			/*countMirror := 1
+			for countMirror <= 1000 {
+				if loss, _ = mx.Training(getMirror(input, target)); loss <= mx.Limit || loss <= nn.MINLOSS {
+					break
+				}
+				countMirror++
+				//fmt.Printf("		Loss: %v\n", loss)
+			}*/
 		}
+		endEpoch := time.Now()
+		fmt.Printf("Epoch: %v, Elapsed time: %v\n", epoch, endEpoch.Sub(startEpoch))
 	}
 
 	// Записываем данные вессов в файл
@@ -131,18 +144,14 @@ func main() {
 	mx.Print(count, loss)
 
 	// Elapsed time
-	t := time.Now()
-	elapsed := t.Sub(start)
-	defer fmt.Printf("Elapsed time: %v\n", elapsed)
-
-
+	end := time.Now()
+	defer fmt.Printf("Elapsed time: %v\n", end.Sub(start))
 
 	/*fmt.Println(nn.GetActivation(1.13, nn.SIGMOID))
 	fmt.Println(nn.GetDerivative(nn.GetActivation(1.13, nn.SIGMOID), nn.SIGMOID) * -(-0.25))
 
 	fmt.Println(nn.GetActivation(-0.53, nn.SIGMOID))
 	fmt.Println(nn.GetDerivative(nn.GetActivation(-0.53, nn.SIGMOID), nn.SIGMOID) * -0.22 * 0.045)*/
-
 }
 
 // Возвращает массив входных параметров
