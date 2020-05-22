@@ -83,7 +83,6 @@ func main() {
 			}
 		}
 	}
-	//fmt.Println(len(dataset), cap(dataset), dataset[0], dataset[len(dataset) - 1][0], dataset[len(dataset) - 1][1]/*,dataset[len(dataset) - 1][2]*/)
 
 	// Обучение
 	/*for epoch := 1; epoch <= 1000; epoch++ {
@@ -126,28 +125,29 @@ func main() {
 	// Альтернативный принцип обучения
 	//n := numInputBar
 	n := len(dataset) - numOutputBar - 100
-	for i := n; i <= len(dataset) - numOutputBar; i++ {
-		for j:= n; j < i; j++ {
-			input  = getInputArray(dataset[j - numInputBar:j])
-			target = getDataArray(dataset[j:j + numOutputBar])
+	for epoch := 1; epoch <= 100; epoch++ {
+		for i := n; i <= len(dataset)-numOutputBar; i++ {
+			for j := n; j < i; j++ {
+				input = getInputArray(dataset[j-numInputBar : j])
+				target = getDataArray(dataset[j : j+numOutputBar])
 
-			count = 1
-			for count <= nn.MAXITER {
-				if loss, _ = mx.Training(input, target); loss <= mx.Limit || loss <= nn.MINLOSS {
-					break
+				count = 1
+				for count <= nn.MAXITER {
+					if loss, _ = mx.Training(input, target); loss <= mx.Limit || loss <= nn.MINLOSS {
+						break
+					}
+					count++
 				}
-				count++
-			}
 
-			// Mirror
-			countMirror := 1
-			for countMirror <= nn.MAXITER {
-				if loss, _ = mx.Training(getMirror(input, target)); loss <= mx.Limit || loss <= nn.MINLOSS {
-					break
-				}
-				countMirror++
+				// Mirror
+				/*countMirror := 1
+				for countMirror <= nn.MAXITER {
+					if loss, _ = mx.Training(getMirror(input, target)); loss <= mx.Limit || loss <= nn.MINLOSS {
+						break
+					}
+					countMirror++
+				}*/
 			}
-			//fmt.Println(i, j)
 		}
 	}
 
