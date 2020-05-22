@@ -28,7 +28,7 @@ func main() {
 		loss	float64
 		count	int
 	)
-	numInputBar  := 7
+	numInputBar  := 5
 	numOutputBar := 2
 	dataScale    := 1000.  // Коэфициент масштабирования данных, приводящих к промежутку от -1 до 1
 	start        := time.Now()
@@ -38,11 +38,11 @@ func main() {
 	mx.Mode   = nn.TANH
 	mx.Rate   = .3
 	mx.Bias   = 1
-	mx.Limit  = 0//.0000001
-	mx.Hidden = []int{21, 21, 11}
+	mx.Limit  = .1 / dataScale // .1 / dataScale = .0001
+	mx.Hidden = []int{20, 20, 20, 20, 20}
 
 	// Считываем данные из файла
-	filename := "nnma/nnma_EURUSD_M60_1-3-5_0_0.dat"
+	filename := "c:/Users/teratron/AppData/Roaming/MetaQuotes/Terminal/0B5C5552DA53B624A3CF5DCF17492076/MQL4/Files/NNMA/nnma_EURUSD_M60_1-3-5_0_0.dat"
 
 	file, err := os.Open(filename)
 	if err != nil {
@@ -86,51 +86,69 @@ func main() {
 	//fmt.Println(len(dataset), cap(dataset), dataset[0], dataset[len(dataset) - 1][0], dataset[len(dataset) - 1][1]/*,dataset[len(dataset) - 1][2]*/)
 
 	// Обучение
-	/*iter := 0
-	num  := 0
-	sum  := 0.*/
-
-	for epoch := 1; epoch <= 1; epoch++ {
+	/*for epoch := 1; epoch <= 1000; epoch++ {
 		startEpoch := time.Now()
-		for i := /*numInputBar*/len(dataset) - numOutputBar - 0; i <= len(dataset) - numOutputBar; i++ {
+		//for i := numInputBar; i <= len(dataset) - numOutputBar; i++ {
+		for i := len(dataset) - numOutputBar - 100; i <= len(dataset) - numOutputBar; i++ {
 			//startBar := time.Now()
-			input = getInputArray(dataset[i - numInputBar:i])
-			//fmt.Println(input)
+			input  = getInputArray(dataset[i - numInputBar:i])
 			target = getDataArray(dataset[i:i + numOutputBar])
-			//fmt.Println(target)
 
 			// Если только знак
-			//input = getSignArray(input)
-			//fmt.Println(input)
+			//input  = getSignArray(input)
 			//target = getSignArray(target)
-			//fmt.Println(target)
 
 			count = 1
-			for count <= 1/*nn.MAXITER*/ {
+			for count <= nn.MAXITER {
 				if loss, _ = mx.Training(input, target); loss <= mx.Limit || loss <= nn.MINLOSS {
 					break
 				}
-				/*num += count
-				sum += loss
-				iter++*/
 				count++
-				//fmt.Printf("		Loss: %v\n", loss)
+				//fmt.Printf("		Loss: %.34f, Count: %v\n", loss, count)
+				//go fmt.Printf("Count: %v\n", count)
 			}
 			//endBar := time.Now()
 			//fmt.Printf("	Bar: %v, Elapsed time: %v, Count: %v\n", i, endBar.Sub(startBar), count)
 
 			// Mirror
-			/*countMirror := 1
-			for countMirror <= 1000 {
+			countMirror := 1
+			for countMirror <= nn.MAXITER {
 				if loss, _ = mx.Training(getMirror(input, target)); loss <= mx.Limit || loss <= nn.MINLOSS {
 					break
 				}
 				countMirror++
-				//fmt.Printf("		Loss: %v\n", loss)
-			}*/
+			}
 		}
 		endEpoch := time.Now()
-		fmt.Printf("Epoch: %v, Elapsed time: %v\n", epoch, endEpoch.Sub(startEpoch))
+		fmt.Printf("Epoch: %v, Count: %v, Elapsed time: %v\n", epoch, count, endEpoch.Sub(startEpoch))
+	}*/
+
+	// Альтернативный принцип обучения
+	//n := numInputBar
+	n := len(dataset) - numOutputBar - 100
+	for i := n; i <= len(dataset) - numOutputBar; i++ {
+		for j:= n; j < i; j++ {
+			input  = getInputArray(dataset[j - numInputBar:j])
+			target = getDataArray(dataset[j:j + numOutputBar])
+
+			count = 1
+			for count <= nn.MAXITER {
+				if loss, _ = mx.Training(input, target); loss <= mx.Limit || loss <= nn.MINLOSS {
+					break
+				}
+				count++
+			}
+
+			// Mirror
+			countMirror := 1
+			for countMirror <= nn.MAXITER {
+				if loss, _ = mx.Training(getMirror(input, target)); loss <= mx.Limit || loss <= nn.MINLOSS {
+					break
+				}
+				countMirror++
+			}
+			//fmt.Println(i, j)
+		}
 	}
 
 	// Записываем данные вессов в файл
@@ -140,7 +158,6 @@ func main() {
 	}
 
 	// Вывод значений нейросети
-	//mx.Print(num / iter, sum / float64(iter))
 	mx.Print(count, loss)
 
 	// Elapsed time
@@ -163,7 +180,7 @@ func getInputArray(dataset [][]float64) []float64 {
 	return d
 }
 
-//
+// Возвращает знак
 func getSignArray(dataset []float64) []float64 {
 	for i, v := range dataset {
 		switch {

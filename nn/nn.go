@@ -7,28 +7,27 @@ import (
 )
 
 const (
-	DEFRATE float64 = .3	// Default rate
-	MINLOSS float64 = 1e-33	// Минимальная величина средней квадратичной суммы ошибки при достижении которой обучение прекращается принудительно
-	MAXITER int     = 1e+06	// Максимальная количество итреаций по достижению которой обучение прекращается принудительно
-
-	MSE		uint8 = 0	// Mean Squared Error
-	RMSE	uint8 = 1	// Root Mean Squared Error
-	ARCTAN	uint8 = 2	// Arctan
+	DEFRATE float64 = .3		// Default rate
+	MINLOSS float64 = 10e-33	// Минимальная величина средней квадратичной суммы ошибки при достижении которой обучение прекращается принудительно
+	MAXITER int     = 10e+05	// Максимальная количество итреаций по достижению которой обучение прекращается принудительно
+	MSE		uint8   = 0			// Mean Squared Error
+	RMSE	uint8   = 1			// Root Mean Squared Error
+	ARCTAN	uint8   = 2			// Arctan
 )
 
 // Collection of neural network matrix parameters
 type Matrix struct {
-	isInit  bool       // Флаг инициализации матрицы
-	Size    int        // Количество слоёв в нейросети (Input + Hidden... + Output)
-	Index   int        // Индекс выходного (последнего) слоя нейросети
-	Mode    uint8      // Идентификатор функции активации
-	ModeError    uint8
-	Bias    float64    // Нейрон смещения: от 0 до 1
-	Rate    float64    // Коэффициент обучения, от 0 до 1
-	Limit   float64    // Минимальный (достаточный) уровень средней квадратичной суммы ошибки при обучения
-	Hidden  []int      // Массив количеств нейронов в каждом скрытом слое
-	Layer   []Layer   // Коллекция слоя
-	Synapse []Synapse // Коллекция весов связей
+	isInit		bool       // Флаг инициализации матрицы
+	Size		int        // Количество слоёв в нейросети (Input + Hidden... + Output)
+	Index		int        // Индекс выходного (последнего) слоя нейросети
+	Mode		uint8      // Идентификатор функции активации
+	ModeError	uint8
+	Bias		float64    // Нейрон смещения: от 0 до 1
+	Rate		float64    // Коэффициент обучения, от 0 до 1
+	Limit		float64    // Минимальный (достаточный) уровень средней квадратичной суммы ошибки при обучения
+	Hidden		[]int      // Массив количеств нейронов в каждом скрытом слое
+	Layer		[]Layer   // Коллекция слоя
+	Synapse		[]Synapse // Коллекция весов связей
 }
 
 // Collection of neural layer parameters
@@ -258,6 +257,8 @@ func (m *Matrix) UpdateWeight() {
 		for j, v := range m.Layer[i].Error {
 			for k, p := range m.Layer[n].Neuron {
 				m.Synapse[n].Weight[k][j] += v * p * m.Rate
+				//if m.Synapse[n].Weight[k][j] == 0 {fmt.Println(m.Synapse[n].Weight[k][j])}
+				//if math.Abs(m.Synapse[n].Weight[k][j]) > 1 {fmt.Println(m.Synapse[n].Weight[k][j])}
 			}
 		}
 	}

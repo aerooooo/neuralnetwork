@@ -26,7 +26,6 @@ func main() {
 	for epoch := 0; epoch < 1; epoch++ {
 		loss, _ = matrix.Training(input, target)
 	}
-	//matrix.FillWeight()
 
 	err := matrix.WriteWeight("weight.dat")
 	if err != nil {
@@ -42,8 +41,8 @@ func main() {
 	matrix.Print(count, loss)
 
 	// Elapsed time
-	t := time.Now()
-	elapsed := t.Sub(start)
+	end := time.Now()
+	elapsed := end.Sub(start)
 	defer fmt.Printf("Elapsed time: %v\n", elapsed)
 
 	//fmt.Printf("%v\n", nn.MAXITER)
