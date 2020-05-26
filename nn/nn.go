@@ -22,6 +22,7 @@ type Matrix struct {
 	Size		int        // Количество слоёв в нейросети (Input + Hidden... + Output)
 	Index		int        // Индекс выходного (последнего) слоя нейросети
 	Mode		uint8      // Идентификатор функции активации
+	//ModeActivation
 	ModeError	uint8
 	Bias		float64    // Нейрон смещения: от 0 до 1
 	Rate		float64    // Коэффициент обучения, от 0 до 1

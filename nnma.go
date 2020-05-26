@@ -85,12 +85,11 @@ func main() {
 	}
 
 	// Обучение
-	maxEpoch := 100000
+	maxEpoch := 10000
 	for epoch := 1; epoch <= maxEpoch; epoch++ {
 		startEpoch := time.Now()
 		//for i := numInputBar; i <= len(dataset) - numOutputBar; i++ {
 		for i := len(dataset) - numOutputBar - 100; i <= len(dataset) - numOutputBar; i++ {
-			//startBar := time.Now()
 			input  = getInputArray(dataset[i - numInputBar:i])
 			target = getTargetArray(dataset[i:i + numOutputBar])
 
@@ -99,19 +98,9 @@ func main() {
 			//target = getSignArray(target)
 
 			loss, count = mx.Training(input, target)
-			//if epoch == 1 || epoch == maxEpoch { fmt.Printf("%v ++++ %.6f\n ", epoch, loss) }
-
-			//endBar := time.Now()
-			//fmt.Printf("	Bar: %v, Elapsed time: %v, Count: %v\n", i, endBar.Sub(startBar), count)
 
 			// Mirror
-			/*countMirror := 1
-			for countMirror <= nn.MAXITER {
-				if loss, _ = mx.Training(getMirror(input, target)); loss <= mx.Limit || loss <= nn.MINLOSS {
-					break
-				}
-				countMirror++
-			}*/
+			//loss, _ = mx.Training(getMirror(input, target))
 		}
 		endEpoch := time.Now()
 		if epoch == 1 || epoch == maxEpoch {
@@ -124,7 +113,6 @@ func main() {
 		for i := len(dataset) - numOutputBar - 100; i <= len(dataset) - numOutputBar; i++ {
 			   _ = mx.Querying(getInputArray(dataset[i - numInputBar:i]))
 			sum += mx.CalcOutputError(getTargetArray(dataset[i:i + numOutputBar]), nn.MSE)
-			//if epoch == 1 || epoch == maxEpoch { fmt.Printf("%v ---- %.6f\n ", epoch, sum) }
 			j++
 		}
 		sum /= float64(j)
@@ -145,23 +133,10 @@ func main() {
 			for j := n; j < i; j++ {
 				input = getInputArray(dataset[j-numInputBar : j])
 				target = getDataArray(dataset[j : j+numOutputBar])
-
-				count = 1
-				for count <= nn.MAXITER {
-					if loss, _ = mx.Training(input, target); loss <= mx.Limit || loss <= nn.MINLOSS {
-						break
-					}
-					count++
-				}
+				loss, count = mx.Training(input, target)
 
 				// Mirror
-				countMirror := 1
-				for countMirror <= nn.MAXITER {
-					if loss, _ = mx.Training(getMirror(input, target)); loss <= mx.Limit || loss <= nn.MINLOSS {
-						break
-					}
-					countMirror++
-				}
+				loss, _ = mx.Training(getMirror(input, target))
 			}
 		}
 	}*/
