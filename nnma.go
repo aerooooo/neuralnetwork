@@ -85,46 +85,61 @@ func main() {
 	}
 
 	// Обучение
-	/*for epoch := 1; epoch <= 1000; epoch++ {
+	maxEpoch := 100000
+	for epoch := 1; epoch <= maxEpoch; epoch++ {
 		startEpoch := time.Now()
 		//for i := numInputBar; i <= len(dataset) - numOutputBar; i++ {
 		for i := len(dataset) - numOutputBar - 100; i <= len(dataset) - numOutputBar; i++ {
 			//startBar := time.Now()
 			input  = getInputArray(dataset[i - numInputBar:i])
-			target = getDataArray(dataset[i:i + numOutputBar])
+			target = getTargetArray(dataset[i:i + numOutputBar])
 
 			// Если только знак
 			//input  = getSignArray(input)
 			//target = getSignArray(target)
 
-			count = 1
-			for count <= nn.MAXITER {
-				if loss, _ = mx.Training(input, target); loss <= mx.Limit || loss <= nn.MINLOSS {
-					break
-				}
-				count++
-				//fmt.Printf("		Loss: %.34f, Count: %v\n", loss, count)
-				//go fmt.Printf("Count: %v\n", count)
-			}
+			loss, count = mx.Training(input, target)
+			//if epoch == 1 || epoch == maxEpoch { fmt.Printf("%v ++++ %.6f\n ", epoch, loss) }
+
 			//endBar := time.Now()
 			//fmt.Printf("	Bar: %v, Elapsed time: %v, Count: %v\n", i, endBar.Sub(startBar), count)
 
 			// Mirror
-			countMirror := 1
+			/*countMirror := 1
 			for countMirror <= nn.MAXITER {
 				if loss, _ = mx.Training(getMirror(input, target)); loss <= mx.Limit || loss <= nn.MINLOSS {
 					break
 				}
 				countMirror++
-			}
+			}*/
 		}
 		endEpoch := time.Now()
-		fmt.Printf("Epoch: %v, Count: %v, Elapsed time: %v\n", epoch, count, endEpoch.Sub(startEpoch))
-	}*/
+		if epoch == 1 || epoch == maxEpoch {
+			fmt.Printf("Epoch: %v,\tCount: %v, Elapsed time: %v\n", epoch, count, endEpoch.Sub(startEpoch))
+		}
+
+		// Test
+		sum := 0.
+		j := 0
+		for i := len(dataset) - numOutputBar - 100; i <= len(dataset) - numOutputBar; i++ {
+			   _ = mx.Querying(getInputArray(dataset[i - numInputBar:i]))
+			sum += mx.CalcOutputError(getTargetArray(dataset[i:i + numOutputBar]), nn.MSE)
+			//if epoch == 1 || epoch == maxEpoch { fmt.Printf("%v ---- %.6f\n ", epoch, sum) }
+			j++
+		}
+		sum /= float64(j)
+		startEpoch = time.Now()
+		if epoch == 1 || epoch == maxEpoch || sum <= mx.Limit {
+			fmt.Printf("Epoch: %v,\tCount: %v, Elapsed time: %v, Error: %.8f\n", epoch, count, startEpoch.Sub(endEpoch), sum)
+			if sum <= mx.Limit {
+				break
+			}
+		}
+	}
 
 	// Альтернативный принцип обучения
 	//n := numInputBar
-	n := len(dataset) - numOutputBar - 100
+	/*n := len(dataset) - numOutputBar - 100
 	for epoch := 1; epoch <= 100; epoch++ {
 		for i := n; i <= len(dataset)-numOutputBar; i++ {
 			for j := n; j < i; j++ {
@@ -140,16 +155,16 @@ func main() {
 				}
 
 				// Mirror
-				/*countMirror := 1
+				countMirror := 1
 				for countMirror <= nn.MAXITER {
 					if loss, _ = mx.Training(getMirror(input, target)); loss <= mx.Limit || loss <= nn.MINLOSS {
 						break
 					}
 					countMirror++
-				}*/
+				}
 			}
 		}
-	}
+	}*/
 
 	// Записываем данные вессов в файл
 	err = mx.WriteWeight(filename + ".weight")
@@ -180,23 +195,8 @@ func getInputArray(dataset [][]float64) []float64 {
 	return d
 }
 
-// Возвращает знак
-func getSignArray(dataset []float64) []float64 {
-	for i, v := range dataset {
-		switch {
-		case v < 0:
-			dataset[i] = -1
-		case v > 0:
-			dataset[i] = 1
-		default:
-			dataset[i] = 0
-		}
-	}
-	return dataset
-}
-
 // Возвращает массив эталонных данных
-func getDataArray(dataset [][]float64) []float64 {
+func getTargetArray(dataset [][]float64) []float64 {
 	d := make([]float64, 0)
 	for _, r := range dataset {
 		d = append(d, r[0])
@@ -213,4 +213,19 @@ func getMirror(input, target []float64) ([]float64, []float64) {
 		target[i] *= -1
 	}
 	return input, target
+}
+
+// Возвращает знак
+func getSignArray(dataset []float64) []float64 {
+	for i, v := range dataset {
+		switch {
+		case v < 0:
+			dataset[i] = -1
+		case v > 0:
+			dataset[i] = 1
+		default:
+			dataset[i] = 0
+		}
+	}
+	return dataset
 }

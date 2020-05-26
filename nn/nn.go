@@ -1,6 +1,7 @@
 package nn
 
 import (
+	"log"
 	"math"
 	"math/rand"
 	"time"
@@ -141,7 +142,7 @@ func backwardPropagation() {
 }
 
 // Training
-func (m *Matrix) Training(input, target []float64) (loss float64, count int) {
+/*func (m *Matrix) Training(input, target []float64) (loss float64, count int) {
 	if !m.isInit {
 		m.isInit = m.Initializing(input, target)
 	} else {
@@ -153,12 +154,12 @@ func (m *Matrix) Training(input, target []float64) (loss float64, count int) {
 	m.UpdateWeight()
 
 	return loss, 1
-}
+}*/
 
 // Training
-/*func (m *Matrix) Training(input, target []float64) (loss float64, count int) {
-	if !m.IsInit {
-		m.IsInit = m.Initializing(input, target)
+func (m *Matrix) Training(input, target []float64) (loss float64, count int) {
+	if !m.isInit {
+		m.isInit = m.Initializing(input, target)
 	} else {
 		copy(m.Layer[0].Neuron, input)
 	}
@@ -173,7 +174,18 @@ func (m *Matrix) Training(input, target []float64) (loss float64, count int) {
 		count++
 	}
 	return loss, count
-}*/
+}
+
+// Querying
+func (m *Matrix) Querying(input []float64) []float64 {
+	if m.isInit {
+		copy(m.Layer[0].Neuron, input)
+	} else {
+		log.Panicln("an uninitialized neural network")
+	}
+	m.CalcNeuron()
+	return m.Layer[m.Index].Neuron
+}
 
 // The function fills all weights with random numbers from -0.5 to 0.5
 func (m *Matrix) FillWeight() {
