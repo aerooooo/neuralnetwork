@@ -2,36 +2,30 @@ package main
 
 import "fmt"
 
-type Lister interface {
-	Enumerate()
+type Vehicle interface {
+	move()
 }
 
-type Array struct {
-	Bias
+type Car struct { model string}
+type Aircraft struct { model string}
+
+func (c Car) move() {
+	fmt.Printf("%T %v едет\n", c.model, c.model)
 }
 
-type Bias float64
-
-func (a Array) Enumerate() {
-	fmt.Println(a.Bias)
-}
-func (b Bias) Enumerate() {
-	fmt.Println(b)
+func (a Aircraft) move() {
+	fmt.Printf("%T %v летит\n", a.model, a.model)
 }
 
 func main() {
-	//a := Array{}
-	var b Lister
+	var tesla Vehicle = Car{"Tesla"}
+	volvo  := Car{"Volvo"}
+	boeing := Aircraft{"Boeing"}
 
-	c := Array{ /*Bias(.5)*/ }
-	b = Bias(.1)
+	fmt.Printf("%T %v едет\n", tesla, tesla)
 
-	c.Enumerate()
-	b.Enumerate()
-
-	//fmt.Println(a.Bias)
-
-	//a.Bias = Bias(0.1)
-
-	//fmt.Println(a.Bias)
+	vehicles := [...]Vehicle{tesla, volvo, boeing}
+	for _, vehicle := range vehicles {
+		vehicle.move()
+	}
 }
