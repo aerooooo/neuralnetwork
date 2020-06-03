@@ -27,6 +27,11 @@ func main() {
 		loss, _ = matrix.Training(input, target)
 	}
 
+	weight := make([][]float64, 2000)
+	//weight := new([][]float64)
+	matrix.CopyWeight(&weight)
+	fmt.Println(weight)
+
 	err := matrix.WriteWeight("weight.dat")
 	if err != nil {
 		log.Fatal(err)

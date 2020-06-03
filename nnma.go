@@ -28,22 +28,21 @@ func main() {
 		loss	float64
 		count	int
 	)
-	numInputBar  := 5
-	numOutputBar := 2
+	numInputBar  := 8	// 5
+	numOutputBar := 3
 	dataScale    := 1000.  // Коэфициент масштабирования данных, приводящих к промежутку от -1 до 1
 	start        := time.Now()
 
 	//mx := new(nn.Matrix)
 	var mx nn.Matrix
 	mx.Mode   = nn.TANH
-	mx.Rate   = .3
+	mx.Rate   = .1
 	mx.Bias   = 1
-	mx.Limit  = .1 / dataScale // .1 / dataScale = .0001
-	mx.Hidden = []int{20, 20, 20, 20, 20}
+	mx.Limit  = 1 / dataScale // .1 / dataScale = .0001
+	mx.Hidden = []int{60, 60, 60}
 
 	// Считываем данные из файла
-	filename := "c:/Users/teratron/AppData/Roaming/MetaQuotes/Terminal/0B5C5552DA53B624A3CF5DCF17492076/MQL4/Files/NNMA/nnma_EURUSD_M60_1-3-5_0_0.dat"
-
+	filename := "c:/Users/teratron/AppData/Roaming/MetaQuotes/Terminal/0B5C5552DA53B624A3CF5DCF17492076/MQL4/Files/NNMA/nnma_EURUSD_M60_1-3-5_1-3-5.dat"
 	file, err := os.Open(filename)
 	if err != nil {
 		log.Fatalln(err)
@@ -85,35 +84,55 @@ func main() {
 	}
 
 	// Обучение
+	//weight   := new([][]float64)
 	maxEpoch := 100000
+	minError := 1.
 	for epoch := 1; epoch <= maxEpoch; epoch++ {
 		startEpoch := time.Now()
-		sum := 0.
 		//for i := numInputBar; i <= len(dataset) - numOutputBar; i++ {
-		for i := len(dataset) - numOutputBar - 100; i <= len(dataset) - numOutputBar; i++ {
+		for i := len(dataset) - numOutputBar - 5000; i <= len(dataset) - numOutputBar; i++ {
 			input  = getInputArray(dataset[i - numInputBar:i])
 			target = getTargetArray(dataset[i:i + numOutputBar])
 			loss, count = mx.Training(input, target)
-			//sum += loss
-
-			// Mirror
-			//loss, count = mx.Training(getMirror(input, target))
-			//sum += loss
 		}
-		//loss = sum / 2.
 
 		// Testing
-		sum = 0.
+		sum := 0.
 		j := 0
-		for i := len(dataset) - numOutputBar - 100; i <= len(dataset) - numOutputBar; i++ {
+		//for i := numInputBar; i <= len(dataset) - numOutputBar; i++ {
+		for i := len(dataset) - numOutputBar - 5000; i <= len(dataset) - numOutputBar; i++ {
 			   _ = mx.Querying(getInputArray(dataset[i - numInputBar:i]))
-			sum += mx.CalcOutputError(getTargetArray(dataset[i:i + numOutputBar]), nn.MSE)
+			loss = mx.CalcOutputError(getTargetArray(dataset[i:i + numOutputBar]), nn.MSE)
+			sum += loss
 			j++
+			if loss > mx.Limit {
+				break
+			}
 		}
+
+		// Средняя ошибка за всю эпоху
 		sum /= float64(j)
-		endEpoch := time.Now()
-		if epoch == 1 || epoch == maxEpoch || sum <= mx.Limit {
-			fmt.Printf("Epoch: %v\tCount: %v\tElapsed time: %v\tError: %.8f\n", epoch, count, endEpoch.Sub(startEpoch), sum)
+
+		//
+		/*if loss > mx.Limit {
+			if epoch == 1 || epoch == 10 || epoch % 1000 == 0 || epoch == maxEpoch {
+				fmt.Printf("+++++++++ Epoch: %v\tError: %.8f\n", epoch, sum)
+			}
+			continue
+		}*/
+
+		// Минимальная средняя ошибка
+		if sum < minError && epoch >= 1000 {
+			minError = sum
+			fmt.Println("--------- Epoch:", epoch, "\tmin avg error:", minError)
+			/*if epoch >= 10000 {
+				mx.CopyWeight(weight)
+			}*/
+		}
+
+		//
+		if epoch == 1 || epoch == 10 || epoch % 1000 == 0 || epoch == maxEpoch || sum <= mx.Limit {
+			fmt.Printf("Epoch: %v\tCount: %v\tElapsed time: %v / %v\tError: %.8f\n", epoch, count, time.Now().Sub(startEpoch), time.Now().Sub(start), sum)
 			if sum <= mx.Limit {
 				break
 			}
@@ -166,13 +185,7 @@ func main() {
 
 	// Elapsed time
 	end := time.Now()
-	defer fmt.Printf("Elapsed time: %v\n", end.Sub(start))
-
-	/*fmt.Println(nn.GetActivation(1.13, nn.SIGMOID))
-	fmt.Println(nn.GetDerivative(nn.GetActivation(1.13, nn.SIGMOID), nn.SIGMOID) * -(-0.25))
-
-	fmt.Println(nn.GetActivation(-0.53, nn.SIGMOID))
-	fmt.Println(nn.GetDerivative(nn.GetActivation(-0.53, nn.SIGMOID), nn.SIGMOID) * -0.22 * 0.045)*/
+	fmt.Printf("Elapsed time: %v\n", end.Sub(start))
 }
 
 // Возвращает массив входных параметров
@@ -191,30 +204,4 @@ func getTargetArray(dataset [][]float64) []float64 {
 		d = append(d, r[0])
 	}
 	return d
-}
-
-// Зеркалит данные
-func getMirror(input, target []float64) ([]float64, []float64) {
-	for i := range input {
-		input[i] *= -1
-	}
-	for i := range target {
-		target[i] *= -1
-	}
-	return input, target
-}
-
-// Возвращает знак
-func getSignArray(dataset []float64) []float64 {
-	for i, v := range dataset {
-		switch {
-		case v < 0:
-			dataset[i] = -1
-		case v > 0:
-			dataset[i] = 1
-		default:
-			dataset[i] = 0
-		}
-	}
-	return dataset
 }
