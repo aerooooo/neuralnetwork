@@ -36,10 +36,10 @@ func main() {
 	//mx := new(nn.Matrix)
 	var mx nn.Matrix
 	mx.Mode   = nn.TANH
-	mx.Rate   = .1
+	mx.Rate   = .3
 	mx.Bias   = 1
 	mx.Limit  = 1 / dataScale // .1 / dataScale = .0001
-	mx.Hidden = []int{60, 60, 60}
+	mx.Hidden = []int{60, 60, 60, 60, 60}
 
 	// Считываем данные из файла
 	filename := "c:/Users/teratron/AppData/Roaming/MetaQuotes/Terminal/0B5C5552DA53B624A3CF5DCF17492076/MQL4/Files/NNMA/nnma_EURUSD_M60_1-3-5_1-3-5.dat"
@@ -105,9 +105,9 @@ func main() {
 			loss = mx.CalcOutputError(getTargetArray(dataset[i:i + numOutputBar]), nn.MSE)
 			sum += loss
 			j++
-			if loss > mx.Limit {
+			/*if loss > mx.Limit {
 				break
-			}
+			}*/
 		}
 
 		// Средняя ошибка за всю эпоху

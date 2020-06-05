@@ -43,7 +43,7 @@ type Layer struct {
 type Synapse struct {
 	Size   []int       // Количество связей весов {X, Y}, X - входной (предыдущий) слой, Y - выходной (следующий) слой
 	Weight [][]float64 // Значения весов
-	Copy   [][]float64
+	//Copy   [][]float64
 }
 
 type (
@@ -124,10 +124,10 @@ func (m *Matrix) Initializing(input, target []float64) bool {
 			m.Layer[i].Neuron = append(m.Layer[i].Neuron, m.Bias)
 			m.Synapse[i].Size = []int{m.Layer[i].Size + 1, m.Layer[i+1].Size}
 			m.Synapse[i].Weight = make([][]float64, m.Synapse[i].Size[0])
-			m.Synapse[i].Copy   = make([][]float64, m.Synapse[i].Size[0])
+			//m.Synapse[i].Copy   = make([][]float64, m.Synapse[i].Size[0])
 			for j = 0; j < m.Synapse[i].Size[0]; j++ {
 				m.Synapse[i].Weight[j] = make([]float64, m.Synapse[i].Size[1])
-				m.Synapse[i].Copy[j]   = make([]float64, m.Synapse[i].Size[1])
+				//m.Synapse[i].Copy[j]   = make([]float64, m.Synapse[i].Size[1])
 			}
 		}
 	}
