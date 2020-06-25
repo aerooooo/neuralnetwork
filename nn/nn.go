@@ -46,6 +46,10 @@ type Synapse struct {
 	//Copy   [][]float64
 }
 
+type Checker interface {
+	Checking() float64
+}
+
 type (
 	FloatType float64
 	Bias      FloatType
