@@ -121,7 +121,7 @@ func main() {
 			continue
 		}*/
 
-		// Минимальная средняя ошибка
+		// Веса нейросети копируются при минимальной средней ошибки
 		if sum < minError && epoch >= 1000 {
 			minError = sum
 			fmt.Println("--------- Epoch:", epoch, "\tmin avg error:", minError)
@@ -130,7 +130,7 @@ func main() {
 			}*/
 		}
 
-		//
+		// Выход из эпох обучения при достижении минимального уровня ошибки
 		if epoch == 1 || epoch == 10 || epoch % 1000 == 0 || epoch == maxEpoch || sum <= mx.Limit {
 			fmt.Printf("Epoch: %v\tCount: %v\tElapsed time: %v / %v\tError: %.8f\n", epoch, count, time.Now().Sub(startEpoch), time.Now().Sub(start), sum)
 			if sum <= mx.Limit {
@@ -153,6 +153,7 @@ func main() {
 	fmt.Printf("Elapsed time: %v\n", end.Sub(start))
 }
 
+// getInputData returns input data
 // Возвращает массив входных параметров
 func getInputArray(dataset [][]float64) []float64 {
 	d := make([]float64, 0)
@@ -162,6 +163,7 @@ func getInputArray(dataset [][]float64) []float64 {
 	return d
 }
 
+// getTargetData returns reference data
 // Возвращает массив эталонных данных
 func getTargetArray(dataset [][]float64) []float64 {
 	d := make([]float64, 0)
