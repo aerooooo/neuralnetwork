@@ -23,22 +23,22 @@ func main() {
 		Hidden:	[]int{5, 4},
 	}*/
 	var (
-		input	[]float64
-		target	[]float64
-		loss	float64
-		count	int
+		input  []float64
+		target []float64
+		loss   float64
+		count  int
 	)
-	numInputBar  := 8	// 5
+	numInputBar := 8 // 5
 	numOutputBar := 1
-	dataScale    := 1000.  // Коэфициент масштабирования данных, приводящих к промежутку от -1 до 1
-	start        := time.Now()
+	dataScale := 1000. // Коэфициент масштабирования данных, приводящих к промежутку от -1 до 1
+	start := time.Now()
 
 	//mx := new(nn.Matrix)
 	var mx nn.Matrix
-	mx.Mode   = nn.TANH
-	mx.Rate   = .1
-	mx.Bias   = 1
-	mx.Limit  = .1 / dataScale // .1 / dataScale = .0001
+	mx.Mode = nn.TANH
+	mx.Rate = .1
+	mx.Bias = 1
+	mx.Limit = .1 / dataScale // .1 / dataScale = .0001
 	mx.Hidden = []int{60, 60, 60, 60, 60}
 
 	// Считываем данные из файла
@@ -49,10 +49,10 @@ func main() {
 	}
 	defer file.Close()
 
-	reader  := bufio.NewReader(file)
+	reader := bufio.NewReader(file)
 	dataset := make([][]float64, 0)
 
-	for i := 0;; {
+	for i := 0; ; {
 		if line, err := reader.ReadString('\n'); err != nil {
 			if err == io.EOF {
 				break
@@ -60,16 +60,16 @@ func main() {
 				log.Fatalln(err)
 			}
 		} else {
-			line = strings.Trim(line,"\n")
+			line = strings.Trim(line, "\n")
 			if strings.HasSuffix(line, "\r") {
-				line = strings.Trim(line,"\r")
+				line = strings.Trim(line, "\r")
 			}
 			if len(line) > 0 {
 				var row []float64
 				dataset = append(dataset, row)
 				for _, v := range strings.Split(line, "\t") {
 					if f, err := strconv.ParseFloat(v, 64); err == nil {
-						row = append(row, f / dataScale)
+						row = append(row, f/dataScale)
 					} else {
 						log.Fatalln(err)
 					}
@@ -90,9 +90,9 @@ func main() {
 	for epoch := 1; epoch <= maxEpoch; epoch++ {
 		startEpoch := time.Now()
 		//for i := numInputBar; i <= len(dataset) - numOutputBar; i++ {
-		for i := len(dataset) - numOutputBar - 100; i <= len(dataset) - numOutputBar - 10; i++ {
-			input  = getInputArray(dataset[i - numInputBar:i])
-			target = getTargetArray(dataset[i:i + numOutputBar])
+		for i := len(dataset) - numOutputBar - 100; i <= len(dataset)-numOutputBar-10; i++ {
+			input = getInputArray(dataset[i-numInputBar : i])
+			target = getTargetArray(dataset[i : i+numOutputBar])
 			loss, count = mx.Training(input, target)
 		}
 
@@ -100,9 +100,9 @@ func main() {
 		sum := 0.
 		j := 0
 		//for i := numInputBar; i <= len(dataset) - numOutputBar; i++ {
-		for i := len(dataset) - numOutputBar - 100; i <= len(dataset) - numOutputBar - 10; i++ {
-			   _ = mx.Querying(getInputArray(dataset[i - numInputBar:i]))
-			loss = mx.CalcOutputError(getTargetArray(dataset[i:i + numOutputBar]), nn.MSE)
+		for i := len(dataset) - numOutputBar - 100; i <= len(dataset)-numOutputBar-10; i++ {
+			_ = mx.Querying(getInputArray(dataset[i-numInputBar : i]))
+			loss = mx.CalcOutputError(getTargetArray(dataset[i:i+numOutputBar]), nn.MSE)
 			sum += loss
 			j++
 			/*if loss > mx.Limit {
@@ -131,7 +131,7 @@ func main() {
 		}
 
 		// Выход из эпох обучения при достижении минимального уровня ошибки
-		if epoch == 1 || epoch == 10 || epoch % 1000 == 0 || epoch == maxEpoch || sum <= mx.Limit {
+		if epoch == 1 || epoch == 10 || epoch%1000 == 0 || epoch == maxEpoch || sum <= mx.Limit {
 			fmt.Printf("Epoch: %v\tCount: %v\tElapsed time: %v / %v\tError: %.8f\n", epoch, count, time.Now().Sub(startEpoch), time.Now().Sub(start), sum)
 			if sum <= mx.Limit {
 				break

@@ -18,7 +18,7 @@ func (m *Matrix) ReadWeight(filename string) error {
 	defer file.Close()
 
 	reader := bufio.NewReader(file)
-	for i, j := 0, 0;; {
+	for i, j := 0, 0; ; {
 		if line, err := reader.ReadString('\n'); err != nil {
 			if err == io.EOF {
 				break
@@ -26,9 +26,9 @@ func (m *Matrix) ReadWeight(filename string) error {
 				return err
 			}
 		} else {
-			line = strings.Trim(line,"\n")
+			line = strings.Trim(line, "\n")
 			if strings.HasSuffix(line, "\r") {
-				line = strings.Trim(line,"\r")
+				line = strings.Trim(line, "\r")
 			}
 			if len(line) > 0 {
 				for k, v := range strings.Split(line, "\t") {
@@ -61,18 +61,18 @@ func (m *Matrix) WriteWeight(filename string) error {
 		for j := 0; j < m.Synapse[i].Size[0]; j++ {
 			for k := 0; k < m.Synapse[i].Size[1]; k++ {
 				_, err = writer.WriteString(strconv.FormatFloat(m.Synapse[i].Weight[j][k], 'f', -1, 64)) // Запись строки
-				if k < m.Synapse[i].Size[1] - 1 {
+				if k < m.Synapse[i].Size[1]-1 {
 					_, err = writer.WriteString("\t") // Разделяем значения
 				} else {
 					_, err = writer.WriteString("\n") // Перевод строки
 				}
 			}
 		}
-		if i < m.Size - 2 {
+		if i < m.Size-2 {
 			_, err = writer.WriteString("\n") // Перевод строки
 		}
 	}
-	return writer.Flush()	// Сбрасываем данные из буфера в файл
+	return writer.Flush() // Сбрасываем данные из буфера в файл
 }
 
 // Функция вывода результатов нейросети

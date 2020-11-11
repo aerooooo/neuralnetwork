@@ -1,2 +1,1 @@
-# neuralnetwork
-Neural Network (test)
+# Neural network

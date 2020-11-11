@@ -5,11 +5,11 @@ import (
 )
 
 const (
-	LINEAR	    uint8 = 0	// Linear/Identity (линейная/тождественная)
-	SIGMOID		uint8 = 1	// Logistic, a.k.a. sigmoid or soft step (логистическая, сигмоида или гладкая ступенька)
-	TANH		uint8 = 2	// TanH - hyperbolic (гиперболический тангенс)
-	RELU		uint8 = 3	// ReLu - rectified linear unit (линейный выпрямитель)
-	LEAKYRELU	uint8 = 4	// Leaky ReLu - leaky rectified linear unit (линейный выпрямитель с «утечкой»)
+	LINEAR    uint8 = 0 // Linear/Identity (линейная/тождественная)
+	SIGMOID   uint8 = 1 // Logistic, a.k.a. sigmoid or soft step (логистическая, сигмоида или гладкая ступенька)
+	TANH      uint8 = 2 // TanH - hyperbolic (гиперболический тангенс)
+	RELU      uint8 = 3 // ReLu - rectified linear unit (линейный выпрямитель)
+	LEAKYRELU uint8 = 4 // Leaky ReLu - leaky rectified linear unit (линейный выпрямитель с «утечкой»)
 )
 
 // Activation function
@@ -47,7 +47,8 @@ func GetActivation(value float64, mode uint8) float64 {
 // Derivative activation function
 func GetDerivative(value float64, mode uint8) float64 {
 	switch mode {
-	default: fallthrough
+	default:
+		fallthrough
 	case LINEAR:
 		return 1
 	case SIGMOID:

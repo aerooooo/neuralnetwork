@@ -10,8 +10,8 @@ import (
 
 func main() {
 	var (
-		count int
-		loss  float64
+		count  int
+		loss   float64
 		input  = []float64{-.2, .63}  // Входные параметры
 		target = []float64{.63, -.32} // Обучающий набор с которым будет сравниваться выходной слой
 		hidden = []int{5, 4}          // Массив количеств нейронов в каждом скрытом слое
