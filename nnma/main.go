@@ -14,35 +14,26 @@ import (
 )
 
 func main() {
-	/*mx := nn.Matrix{
-		Mode:	nn.TANH,
-		Rate:	.3,
-		Bias:	1,
-		Epoch:	4,
-		Limit:	.01,
-		Hidden:	[]int{5, 4},
-	}*/
 	var (
 		input  []float64
 		target []float64
 		loss   float64
 		count  int
 	)
-	numInputBar := 8 // 5
+	numInputBar := 6
 	numOutputBar := 1
 	dataScale := 1000. // Коэфициент масштабирования данных, приводящих к промежутку от -1 до 1
 	start := time.Now()
 
-	//mx := new(nn.Matrix)
 	var mx nn.Matrix
 	mx.Mode = nn.TANH
-	mx.Rate = .1
+	mx.Rate = .3
 	mx.Bias = 1
-	mx.Limit = .1 / dataScale // .1 / dataScale = .0001
-	mx.Hidden = []int{60, 60, 60, 60, 60}
+	mx.Limit = 1 / dataScale // .1 / dataScale = .0001
+	mx.Hidden = []int{10, 6}
 
 	// Считываем данные из файла
-	filename := "c:/Users/teratron/AppData/Roaming/MetaQuotes/Terminal/0B5C5552DA53B624A3CF5DCF17492076/MQL4/Files/NNMA/nnma_EURUSD_M60_1-5-9_1-5-9.dat"
+	filename := "c:/Users/teratron/AppData/Roaming/MetaQuotes/Terminal/0B5C5552DA53B624A3CF5DCF17492076/MQL4/Files/NNMA/nnma_EURUSD_M60_1_0.dat"
 	file, err := os.Open(filename)
 	if err != nil {
 		log.Fatalln(err)
@@ -90,7 +81,7 @@ func main() {
 	for epoch := 1; epoch <= maxEpoch; epoch++ {
 		startEpoch := time.Now()
 		//for i := numInputBar; i <= len(dataset) - numOutputBar; i++ {
-		for i := len(dataset) - numOutputBar - 100; i <= len(dataset)-numOutputBar-10; i++ {
+		for i := len(dataset) - numOutputBar - 1000; i <= len(dataset)-numOutputBar-10; i++ {
 			input = getInputArray(dataset[i-numInputBar : i])
 			target = getTargetArray(dataset[i : i+numOutputBar])
 			loss, count = mx.Training(input, target)
@@ -100,7 +91,7 @@ func main() {
 		sum := 0.
 		j := 0
 		//for i := numInputBar; i <= len(dataset) - numOutputBar; i++ {
-		for i := len(dataset) - numOutputBar - 100; i <= len(dataset)-numOutputBar-10; i++ {
+		for i := len(dataset) - numOutputBar - 1000; i <= len(dataset)-numOutputBar-10; i++ {
 			_ = mx.Querying(getInputArray(dataset[i-numInputBar : i]))
 			loss = mx.CalcOutputError(getTargetArray(dataset[i:i+numOutputBar]), nn.MSE)
 			sum += loss
@@ -131,7 +122,7 @@ func main() {
 		}
 
 		// Выход из эпох обучения при достижении минимального уровня ошибки
-		if epoch == 1 || epoch == 10 || epoch%1000 == 0 || epoch == maxEpoch || sum <= mx.Limit {
+		if epoch == 1 || epoch == 10 || epoch%100 == 0 || epoch == maxEpoch || sum <= mx.Limit {
 			fmt.Printf("Epoch: %v\tCount: %v\tElapsed time: %v / %v\tError: %.8f\n", epoch, count, time.Now().Sub(startEpoch), time.Now().Sub(start), sum)
 			if sum <= mx.Limit {
 				break

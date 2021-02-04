@@ -277,26 +277,3 @@ func (m *Matrix) UpdateWeight() {
 		}
 	}
 }
-
-//
-func (m *Matrix) CopyWeight(weight *[][]float64) {
-	/*for i := 0; i < m.Index; i++ {
-		for j := 0; j < m.Synapse[i].Size[0]; j++ {
-
-			for k := 0; k < m.Synapse[i].Size[1]; k++ {
-				m.Synapse[i].Weight[j][k] = randWeight()
-				copy()
-			}
-		}
-	}*/
-	for i := 0; i < m.Index; i++ {
-		/*weight = make([][]float64, m.Synapse[i].Size[0])
-		for j := 0; j < m.Synapse[i].Size[0]; j++ {
-			weight[i] = make([]float64, m.Synapse[i].Size[1])
-		}*/
-		//for j := 0; j < m.Synapse[i].Size[0]; j++ {
-		copy(*weight, m.Synapse[i].Weight)
-		//fmt.Println(m.Synapse[i].Weight)
-		//}
-	}
-}

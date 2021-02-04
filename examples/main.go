@@ -28,8 +28,6 @@ func main() {
 	}
 
 	weight := make([][]float64, 2000)
-	//weight := new([][]float64)
-	matrix.CopyWeight(&weight)
 	fmt.Println(weight)
 
 	err := matrix.WriteWeight("weight.dat")
@@ -49,6 +47,4 @@ func main() {
 	end := time.Now()
 	elapsed := end.Sub(start)
 	defer fmt.Printf("Elapsed time: %v\n", elapsed)
-
-	//fmt.Printf("%v\n", nn.MAXITER)
 }
