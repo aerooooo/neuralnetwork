@@ -9,27 +9,28 @@ import (
 
 const (
 	DEFRATE float64 = .3     // Default rate
-	MINLOSS float64 = 10e-33 // Минимальная величина средней квадратичной суммы ошибки при достижении которой обучение прекращается принудительно
 	MAXITER int     = 10e+05 // Максимальная количество итреаций по достижению которой обучение прекращается принудительно
-	MSE     uint8   = 0      // Mean Squared Error
-	RMSE    uint8   = 1      // Root Mean Squared Error
-	ARCTAN  uint8   = 2      // Arctan
+)
+
+const (
+	MSE    uint8 = iota // Mean Squared Error
+	RMSE                // Root Mean Squared Error
+	ARCTAN              // Arctan
 )
 
 // Collection of neural network matrix parameters
 type Matrix struct {
-	isInit bool  // Флаг инициализации матрицы
-	Size   int   // Количество слоёв в нейросети (Input + Hidden... + Output)
-	Index  int   // Индекс выходного (последнего) слоя нейросети
-	Mode   uint8 // Идентификатор функции активации
-	//ModeActivation
-	ModeError uint8     // Идентификатор средней ошибки
-	Bias      float64   // Нейрон смещения: от 0 до 1
-	Rate      float64   // Коэффициент обучения, от 0 до 1
-	Limit     float64   // Минимальный (достаточный) уровень средней квадратичной суммы ошибки при обучения
-	Hidden    []int     // Массив количеств нейронов в каждом скрытом слое
-	Layer     []Layer   // Коллекция слоя
-	Synapse   []Synapse // Коллекция весов связей
+	isInit         bool      // Флаг инициализации матрицы
+	Size           int       // Количество слоёв в нейросети (Input + Hidden... + Output)
+	Index          int       // Индекс выходного (последнего) слоя нейросети
+	ModeActivation uint8     // Идентификатор функции активации
+	ModeError      uint8     // Идентификатор средней ошибки
+	Bias           float64   // Нейрон смещения: от 0 до 1
+	Rate           float64   // Коэффициент обучения, от 0 до 1
+	Limit          float64   // Минимальный (достаточный) уровень средней квадратичной суммы ошибки при обучения
+	Hidden         []int     // Массив количеств нейронов в каждом скрытом слое
+	Layer          []Layer   // Коллекция слоя
+	Synapse        []Synapse // Коллекция весов связей
 }
 
 // Collection of neural layer parameters
@@ -43,12 +44,11 @@ type Layer struct {
 type Synapse struct {
 	Size   []int       // Количество связей весов {X, Y}, X - входной (предыдущий) слой, Y - выходной (следующий) слой
 	Weight [][]float64 // Значения весов
-	//Copy   [][]float64
 }
 
-type Checker interface {
+/*type Checker interface {
 	Checking() float64
-}
+}*/
 
 type (
 	FloatType float64
@@ -59,7 +59,7 @@ type (
 
 // Matrix initialization function
 func (m *Matrix) InitMatrix(mode uint8, bias, rate, limit FloatType, input, target []float64, hidden []int) {
-	m.Mode = mode
+	m.ModeActivation = mode
 	m.Bias = bias.Checking()
 	m.Rate = rate.Checking()
 	m.Limit = limit.Checking()
@@ -84,7 +84,7 @@ func (b Bias) Checking() float64 {
 
 func (r Rate) Checking() float64 {
 	switch {
-	case r < 0 || r > 1:
+	case r <= 0 || r > 1:
 		return DEFRATE
 	default:
 		return float64(r)
@@ -92,12 +92,7 @@ func (r Rate) Checking() float64 {
 }
 
 func (l Limit) Checking() float64 {
-	switch {
-	case l < 0:
-		return MINLOSS
-	default:
-		return float64(l)
-	}
+	return float64(l)
 }
 
 // Matrix initialization function
@@ -128,10 +123,8 @@ func (m *Matrix) Initializing(input, target []float64) bool {
 			m.Layer[i].Neuron = append(m.Layer[i].Neuron, m.Bias)
 			m.Synapse[i].Size = []int{m.Layer[i].Size + 1, m.Layer[i+1].Size}
 			m.Synapse[i].Weight = make([][]float64, m.Synapse[i].Size[0])
-			//m.Synapse[i].Copy   = make([][]float64, m.Synapse[i].Size[0])
 			for j = 0; j < m.Synapse[i].Size[0]; j++ {
 				m.Synapse[i].Weight[j] = make([]float64, m.Synapse[i].Size[1])
-				//m.Synapse[i].Copy[j]   = make([]float64, m.Synapse[i].Size[1])
 			}
 		}
 	}
@@ -140,21 +133,6 @@ func (m *Matrix) Initializing(input, target []float64) bool {
 
 	return true
 }
-
-// Training
-/*func (m *Matrix) Training(input, target []float64) (loss float64, count int) {
-	if !m.isInit {
-		m.isInit = m.Initializing(input, target)
-	} else {
-		copy(m.Layer[0].Neuron, input)
-	}
-	m.CalcNeuron()
-	loss = m.CalcOutputError(target, MSE)
-	m.CalcError()
-	m.UpdateWeight()
-
-	return loss, 1
-}*/
 
 // Training
 func (m *Matrix) Training(input, target []float64) (loss float64, count int) {
@@ -166,7 +144,7 @@ func (m *Matrix) Training(input, target []float64) (loss float64, count int) {
 	count = 1
 	for count <= MAXITER {
 		m.CalcNeuron()
-		if loss = m.CalcOutputError(target, MSE); loss <= m.Limit || loss <= MINLOSS {
+		if loss = m.CalcOutputError(target, MSE); loss <= m.Limit {
 			break
 		}
 		m.CalcError()
@@ -220,14 +198,13 @@ func (m *Matrix) CalcNeuron() {
 			for k, v := range m.Layer[n].Neuron {
 				sum += v * m.Synapse[n].Weight[k][j]
 			}
-			m.Layer[i].Neuron[j] = GetActivation(sum, m.Mode)
+			m.Layer[i].Neuron[j] = GetActivation(sum, m.ModeActivation)
 		}
 	}
 }
 
 // Function for calculating the error of the output neuron
 func (m *Matrix) CalcOutputError(target []float64, modeError uint8) (loss float64) {
-	loss = 0
 	for i, v := range m.Layer[m.Index].Neuron {
 		m.Layer[m.Index].Error[i] = target[i] - v
 		switch modeError {
@@ -238,9 +215,10 @@ func (m *Matrix) CalcOutputError(target []float64, modeError uint8) (loss float6
 		case ARCTAN:
 			loss += math.Pow(math.Atan(m.Layer[m.Index].Error[i]), 2)
 		}
-		m.Layer[m.Index].Error[i] *= GetDerivative(v, m.Mode)
+		m.Layer[m.Index].Error[i] *= GetDerivative(v, m.ModeActivation)
 	}
 	loss /= float64(m.Layer[m.Index].Size)
+
 	switch modeError {
 	default:
 		fallthrough
@@ -259,7 +237,7 @@ func (m *Matrix) CalcError() {
 			for k, v := range m.Layer[i+1].Error {
 				m.Layer[i].Error[j] += v * m.Synapse[i].Weight[j][k]
 			}
-			m.Layer[i].Error[j] *= GetDerivative(m.Layer[i].Neuron[j], m.Mode)
+			m.Layer[i].Error[j] *= GetDerivative(m.Layer[i].Neuron[j], m.ModeActivation)
 		}
 	}
 }
@@ -271,8 +249,6 @@ func (m *Matrix) UpdateWeight() {
 		for j, v := range m.Layer[i].Error {
 			for k, p := range m.Layer[n].Neuron {
 				m.Synapse[n].Weight[k][j] += v * p * m.Rate
-				//if m.Synapse[n].Weight[k][j] == 0 {fmt.Println(m.Synapse[n].Weight[k][j])}
-				//if math.Abs(m.Synapse[n].Weight[k][j]) > 1 {fmt.Println(m.Synapse[n].Weight[k][j])}
 			}
 		}
 	}

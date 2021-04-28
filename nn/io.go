@@ -105,5 +105,5 @@ func (m *Matrix) Print(count int, loss float64) {
 	}
 	sep()
 	fmt.Println("Number of iteration:\t", count)
-	fmt.Println("Total error:\t", loss)
+	fmt.Printf("Total error:\t%.6f\n", loss)
 }

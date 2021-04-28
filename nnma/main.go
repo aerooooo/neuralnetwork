@@ -20,29 +20,30 @@ func main() {
 		loss   float64
 		count  int
 	)
-	numInputBar := 6
+
+	numInputBar := 20
 	numOutputBar := 1
 	dataScale := 1000. // Коэфициент масштабирования данных, приводящих к промежутку от -1 до 1
 	start := time.Now()
 
-	var mx nn.Matrix
-	mx.Mode = nn.TANH
+	var mx = &nn.Matrix{}
+	mx.ModeActivation = nn.TANH
 	mx.Rate = .3
 	mx.Bias = 1
-	mx.Limit = 1 / dataScale // .1 / dataScale = .0001
-	mx.Hidden = []int{10, 6}
+	mx.Limit = .1 / dataScale // .1 / dataScale = .0001
+	mx.Hidden = []int{10, 10}
 
 	// Считываем данные из файла
-	filename := "c:/Users/teratron/AppData/Roaming/MetaQuotes/Terminal/0B5C5552DA53B624A3CF5DCF17492076/MQL4/Files/NNMA/nnma_EURUSD_M60_1_0.dat"
+	filename := "c:/Users/teratron/AppData/Roaming/MetaQuotes/Terminal/0B5C5552DA53B624A3CF5DCF17492076/MQL4/Files/NNMA/nnma_EURUSD_M60_5_0.dat"
 	file, err := os.Open(filename)
 	if err != nil {
 		log.Fatalln(err)
 	}
 	defer file.Close()
 
+	//
 	reader := bufio.NewReader(file)
 	dataset := make([][]float64, 0)
-
 	for i := 0; ; {
 		if line, err := reader.ReadString('\n'); err != nil {
 			if err == io.EOF {
@@ -75,13 +76,14 @@ func main() {
 	}
 
 	// Обучение
-	//weight   := new([][]float64)
-	maxEpoch := 100000
+	var weight []nn.Synapse
 	minError := 1.
+	maxEpoch := 100000
+	limit := mx.Limit //* 10
 	for epoch := 1; epoch <= maxEpoch; epoch++ {
 		startEpoch := time.Now()
 		//for i := numInputBar; i <= len(dataset) - numOutputBar; i++ {
-		for i := len(dataset) - numOutputBar - 1000; i <= len(dataset)-numOutputBar-10; i++ {
+		for i := len(dataset) - numOutputBar - 200; i <= len(dataset)-numOutputBar-10; i++ {
 			input = getInputArray(dataset[i-numInputBar : i])
 			target = getTargetArray(dataset[i : i+numOutputBar])
 			loss, count = mx.Training(input, target)
@@ -89,45 +91,40 @@ func main() {
 
 		// Testing
 		sum := 0.
-		j := 0
+		num := 0.
 		//for i := numInputBar; i <= len(dataset) - numOutputBar; i++ {
-		for i := len(dataset) - numOutputBar - 1000; i <= len(dataset)-numOutputBar-10; i++ {
+		for i := len(dataset) - numOutputBar - 200; i <= len(dataset)-numOutputBar-10; i++ {
 			_ = mx.Querying(getInputArray(dataset[i-numInputBar : i]))
 			loss = mx.CalcOutputError(getTargetArray(dataset[i:i+numOutputBar]), nn.MSE)
 			sum += loss
-			j++
-			/*if loss > mx.Limit {
-				break
-			}*/
+			num++
 		}
 
 		// Средняя ошибка за всю эпоху
-		sum /= float64(j)
-
-		//
-		/*if loss > mx.Limit {
-			if epoch == 1 || epoch == 10 || epoch % 1000 == 0 || epoch == maxEpoch {
-				fmt.Printf("+++++++++ Epoch: %v\tError: %.8f\n", epoch, sum)
-			}
-			continue
-		}*/
+		sum /= num
 
 		// Веса нейросети копируются при минимальной средней ошибки
 		if sum < minError && epoch >= 1000 {
 			minError = sum
 			fmt.Println("--------- Epoch:", epoch, "\tmin avg error:", minError)
-			/*if epoch >= 10000 {
-				mx.CopyWeight(weight)
-			}*/
+			//if epoch >= 10000 {
+			weight = mx.Synapse
+			//}
 		}
 
 		// Выход из эпох обучения при достижении минимального уровня ошибки
 		if epoch == 1 || epoch == 10 || epoch%100 == 0 || epoch == maxEpoch || sum <= mx.Limit {
-			fmt.Printf("Epoch: %v\tCount: %v\tElapsed time: %v / %v\tError: %.8f\n", epoch, count, time.Now().Sub(startEpoch), time.Now().Sub(start), sum)
-			if sum <= mx.Limit {
+			fmt.Printf("Epoch: %d\tCount: %d\tElapsed time: %v / %v\tError: %.8f\n", epoch, count, time.Now().Sub(startEpoch), time.Now().Sub(start), sum)
+			if sum <= limit {
+				loss = sum
 				break
 			}
 		}
+	}
+
+	//
+	if weight != nil {
+		mx.Synapse = weight
 	}
 
 	// Записываем данные вессов в файл
@@ -140,8 +137,7 @@ func main() {
 	mx.Print(count, loss)
 
 	// Elapsed time
-	end := time.Now()
-	fmt.Printf("Elapsed time: %v\n", end.Sub(start))
+	fmt.Printf("Elapsed time: %v\n", time.Now().Sub(start))
 }
 
 // getInputData returns input data

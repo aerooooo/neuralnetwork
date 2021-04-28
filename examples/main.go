@@ -19,7 +19,7 @@ func main() {
 	)
 
 	// Инициализация нейросети
-	var matrix nn.Matrix
+	var matrix = new(nn.Matrix)
 	matrix.InitMatrix(nn.TANH, 1, .5, .01, input, target, hidden)
 
 	// Обучение нейронной сети за какое-то количество эпох
