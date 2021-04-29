@@ -31,7 +31,7 @@ func main() {
 	mx.Rate = .3
 	mx.Bias = 1
 	mx.Limit = .1 / dataScale // .1 / dataScale = .0001
-	mx.Hidden = []int{10, 10}
+	mx.Hidden = []int{20, 20}
 
 	// Считываем данные из файла
 	filename := "c:/Users/teratron/AppData/Roaming/MetaQuotes/Terminal/0B5C5552DA53B624A3CF5DCF17492076/MQL4/Files/NNMA/nnma_EURUSD_M60_5_0.dat"
@@ -78,22 +78,26 @@ func main() {
 	// Обучение
 	var weight []nn.Synapse
 	minError := 1.
-	maxEpoch := 100000
+	maxEpoch := 1000000
 	limit := mx.Limit //* 10
+
+	startDataset := len(dataset) - numOutputBar
+	endDataset := startDataset - 10 //len(dataset)-numOutputBar-10
+	startDataset -= 1000            //len(dataset) - numOutputBar - 1000
+
 	for epoch := 1; epoch <= maxEpoch; epoch++ {
 		startEpoch := time.Now()
 		//for i := numInputBar; i <= len(dataset) - numOutputBar; i++ {
-		for i := len(dataset) - numOutputBar - 200; i <= len(dataset)-numOutputBar-10; i++ {
+		for i := startDataset; i <= endDataset; i++ {
 			input = getInputArray(dataset[i-numInputBar : i])
 			target = getTargetArray(dataset[i : i+numOutputBar])
 			loss, count = mx.Training(input, target)
 		}
 
 		// Testing
-		sum := 0.
-		num := 0.
+		sum, num := 0., 0.
 		//for i := numInputBar; i <= len(dataset) - numOutputBar; i++ {
-		for i := len(dataset) - numOutputBar - 200; i <= len(dataset)-numOutputBar-10; i++ {
+		for i := startDataset; i <= endDataset; i++ {
 			_ = mx.Querying(getInputArray(dataset[i-numInputBar : i]))
 			loss = mx.CalcOutputError(getTargetArray(dataset[i:i+numOutputBar]), nn.MSE)
 			sum += loss
@@ -106,10 +110,12 @@ func main() {
 		// Веса нейросети копируются при минимальной средней ошибки
 		if sum < minError && epoch >= 1000 {
 			minError = sum
-			fmt.Println("--------- Epoch:", epoch, "\tmin avg error:", minError)
-			//if epoch >= 10000 {
-			weight = mx.Synapse
-			//}
+			fmt.Println("\t- Epoch:", epoch, "\tmin avg error:", minError)
+
+			// Копируем в буффер веса с наименьшей ошибкой
+			if epoch >= 10000 {
+				weight = mx.Synapse
+			}
 		}
 
 		// Выход из эпох обучения при достижении минимального уровня ошибки
@@ -122,7 +128,7 @@ func main() {
 		}
 	}
 
-	//
+	// Возвращаем из буффера веса
 	if weight != nil {
 		mx.Synapse = weight
 	}

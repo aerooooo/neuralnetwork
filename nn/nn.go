@@ -46,10 +46,6 @@ type Synapse struct {
 	Weight [][]float64 // Значения весов
 }
 
-/*type Checker interface {
-	Checking() float64
-}*/
-
 type (
 	FloatType float64
 	Bias      FloatType
