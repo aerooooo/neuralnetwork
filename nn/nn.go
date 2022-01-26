@@ -140,7 +140,7 @@ func (m *Matrix) Training(input, target []float64) (loss float64, count int) {
 	count = 1
 	for count <= MAXITER {
 		m.CalcNeuron()
-		if loss = m.CalcOutputError(target, MSE); loss <= m.Limit {
+		if loss = m.CalcOutputError(target, m.ModeError); loss <= m.Limit {
 			break
 		}
 		m.CalcError()
@@ -164,12 +164,11 @@ func (m *Matrix) Querying(input []float64) []float64 {
 // The function fills all weights with random numbers from -0.5 to 0.5
 func (m *Matrix) FillWeight() {
 	rand.Seed(time.Now().UTC().UnixNano())
-	randWeight := func() float64 {
-		r := 0.
+	randWeight := func() (r float64) {
 		for r == 0 {
 			r = rand.Float64() - .5
 		}
-		return r
+		return
 	}
 	for i := 0; i < m.Index; i++ {
 		n := m.Synapse[i].Size[0] - 1
@@ -201,6 +200,7 @@ func (m *Matrix) CalcNeuron() {
 
 // Function for calculating the error of the output neuron
 func (m *Matrix) CalcOutputError(target []float64, modeError uint8) (loss float64) {
+	//if m.Layer[m.Index].Size > 1 {
 	for i, v := range m.Layer[m.Index].Neuron {
 		m.Layer[m.Index].Error[i] = target[i] - v
 		switch modeError {
@@ -211,7 +211,7 @@ func (m *Matrix) CalcOutputError(target []float64, modeError uint8) (loss float6
 		case ARCTAN:
 			loss += math.Pow(math.Atan(m.Layer[m.Index].Error[i]), 2)
 		}
-		m.Layer[m.Index].Error[i] *= GetDerivative(v, m.ModeActivation)
+		//m.Layer[m.Index].Error[i] *= GetDerivative(v, m.ModeActivation)
 	}
 	loss /= float64(m.Layer[m.Index].Size)
 
@@ -223,17 +223,21 @@ func (m *Matrix) CalcOutputError(target []float64, modeError uint8) (loss float6
 	case RMSE:
 		return math.Sqrt(loss)
 	}
+	//}
+
+	//m.Layer[m.Index].Error[0] = target[0] - m.Layer[m.Index].Neuron[0]
+	//return math.Abs(m.Layer[m.Index].Error[0])
 }
 
 // Function for calculating the error of neurons in hidden layers
 func (m *Matrix) CalcError() {
 	for i := m.Index - 1; i > 0; i-- {
 		for j := 0; j < m.Layer[i].Size; j++ {
-			m.Layer[i].Error[j] = 0.
+			m.Layer[i].Error[j] = 0
 			for k, v := range m.Layer[i+1].Error {
 				m.Layer[i].Error[j] += v * m.Synapse[i].Weight[j][k]
 			}
-			m.Layer[i].Error[j] *= GetDerivative(m.Layer[i].Neuron[j], m.ModeActivation)
+			//m.Layer[i].Error[j] *= GetDerivative(m.Layer[i].Neuron[j], m.ModeActivation)
 		}
 	}
 }
@@ -244,7 +248,7 @@ func (m *Matrix) UpdateWeight() {
 		n := i - 1
 		for j, v := range m.Layer[i].Error {
 			for k, p := range m.Layer[n].Neuron {
-				m.Synapse[n].Weight[k][j] += v * p * m.Rate
+				m.Synapse[n].Weight[k][j] += v * p * m.Rate * GetDerivative(m.Layer[i].Neuron[j], m.ModeActivation)
 			}
 		}
 	}
